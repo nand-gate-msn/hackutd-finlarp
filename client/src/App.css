@@ -41,7 +41,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 24px; }
 .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
 .panel-head h2, .section-title { margin: 0 0 4px; font-size: var(--text-lg); }
-.panel-head p { margin: 0; max-width: 640px; font-size: var(--text-ui); line-height: var(--leading-ui); }
+.panel-head p { margin: 0; max-width: var(--measure); font-size: var(--text-ui); line-height: var(--leading-ui); }
 .section-title { margin: 8px 0 12px; }
 .small { font-size: var(--text-sm); }
 .good { color: var(--good); } .bad { color: var(--bad); }
@@ -372,7 +372,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .gflags-chev { margin-left: auto; color: var(--muted); }
 .gflags-dot { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; background: var(--bad); font-weight: 700; font-size: var(--text-sm); }
 .gflag-item { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; font: inherit; font-size: var(--text-sm); line-height: var(--leading-ui); text-align: left; color: var(--text); background: color-mix(in srgb, var(--bad) 9%, var(--card)); border: 1px solid color-mix(in srgb, var(--bad) 35%, var(--border)); border-radius: 9px; cursor: pointer; }
-.gflag-item span { color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.gflag-item span { color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .gflag-item:hover { border-color: var(--bad); }
 .gflag-item:focus-visible, .gflags-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .problem { margin: 10px 0; padding: 11px 12px; border: 1px solid var(--bad); border-radius: 10px; background: color-mix(in srgb, var(--bad) 8%, var(--card)); display: flex; flex-direction: column; gap: 8px; }
@@ -399,3 +399,16 @@ h4 { font-size: var(--text-sm); line-height: var(--leading-ui); font-weight: 600
 .card-head h3 { font-size: var(--text-md); }
 .panel-head p { line-height: var(--leading-body); }
 .health-numbers b, .gauge-text b { font-size: var(--text-3xl); line-height: var(--leading-display); letter-spacing: var(--tracking-display); }
+
+.stat-value, .balance, .bar-amt, .chance b, .flow b, .indicator b,
+.pill, .delta, .health-numbers b, .gauge-text b, .mini-stats, .drivers,
+.notice, .ftip-value, .gcard-value, .faxis text, .fzero-label, .flegend b {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+h1, h2, h3 { text-wrap: balance; }
+.page-head p, .panel-head p, .explanation, .problem-why, .notice { text-wrap: pretty; }
+.page-head p, .panel-head p, .explanation { max-width: var(--measure); }
+.badge, .flag, .chip, .tl-tag, .pill, .problem-sev, .see-others { white-space: nowrap; }
+.card-head h3, .pick-head, .pick-reason, .gdetail li, .gdetail h3, .tl-title { overflow-wrap: anywhere; }
+.card-head > div, .pick-head, .gdetail li > *, .tl-title > b { min-width: 0; }

@@ -188,7 +188,7 @@ function ForecastModal({ layers, start, onClose }) {
     })
   return (
     <Modal
-      title={`Projected balance · next ${days} days`}
+      title={`Projected balance · next ${days}\u00a0days`}
       onClose={onClose}
       within="container"
       size="fill"
@@ -561,7 +561,7 @@ export default function GraphView({ projection = null, refresh: refreshKey = 0, 
         <span><i className="ln xfer" />Transfer</span>
         <span><i className="sw ghost" />Projected</span>
       </div>
-      {error && <p className="state error">Couldn't load graph: {error}</p>}
+      {error && <p className="state error">Couldn’t load graph: {error}</p>}
       {graph && graph.nodes.length === 0 && <p className="state">No activity in this window.</p>}
       {graph && graph.nodes.length > 0 && (
         <Canvas key={graph.period.end + graph.period.days} graph={graph} projection={projection} days={days} onChoice={onChoice} onDecision={onDecision} />

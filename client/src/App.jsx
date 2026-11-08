@@ -38,16 +38,16 @@ function AccountCard({ account }) {
       </header>
 
       <div className="mini-stats">
-        <span>{deposits.count} deposits · {money.format(deposits.total)}</span>
-        <span>{purchases.count} purchases · {money.format(purchases.total)}</span>
-        <span>{bills.count} bills · {money.format(bills.total)}</span>
+        <span>{deposits.count}&nbsp;deposits · {money.format(deposits.total)}</span>
+        <span>{purchases.count}&nbsp;purchases · {money.format(purchases.total)}</span>
+        <span>{bills.count}&nbsp;bills · {money.format(bills.total)}</span>
       </div>
 
       {Object.keys(cats).length > 0 && (
         <Section title="Spending by category">
           {Object.entries(cats).map(([name, total]) => (
             <div className="bar-row" key={name}>
-              <span className="bar-name">{name}</span>
+              <span className="bar-name" title={name}>{name}</span>
               <div className="bar-track">
                 <div className="bar-fill" style={{ width: `${(total / maxCat) * 100}%` }} />
               </div>
@@ -133,14 +133,14 @@ export default function App() {
         <h1>Cash Flow Copilot</h1>
         <p>
           {data
-            ? `Last ${data.period.days} days (to ${fmtDate(data.period.end)}) · source: ${data.source}. `
+            ? `Last ${data.period.days}\u00a0days (to ${fmtDate(data.period.end)}) · source: ${data.source}. `
             : ''}
           Account IDs and numbers stay on the server; the AI only sees anonymous summaries.
         </p>
       </header>
 
       {loading && <p className="state">Loading accounts…</p>}
-      {error && <p className="state error">Couldn't load data: {error}</p>}
+      {error && <p className="state error">Couldn’t load data: {error}</p>}
 
       {data && (
         <>

@@ -49,7 +49,7 @@ export default function ForecastChart({ layers, width, height, x = 0, y = 0, sma
 
   return (
     <svg x={x} y={y} width={width} height={height} className={`fchart ${small ? '' : 'fchart-full'}`} role="img"
-      aria-label={`Projected balance over the next ${n} days. ${ends}.`}>
+      aria-label={`Projected balance over the next ${n}\u00a0days. ${ends}.`}>
       {!small && (
         <g className="faxis">
           {yTicks.map((v) => (

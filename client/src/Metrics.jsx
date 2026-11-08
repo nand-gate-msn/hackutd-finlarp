@@ -48,7 +48,7 @@ export default function Metrics({ refresh = 0 }) {
     return () => controller.abort()
   }, [refresh])
 
-  if (error) return <p className="state error">Couldn't load metrics: {error}</p>
+  if (error) return <p className="state error">Couldn’t load metrics: {error}</p>
   if (!m) return <p className="state">Loading metrics…</p>
 
   const flow = m.flow_90d
@@ -85,7 +85,7 @@ export default function Metrics({ refresh = 0 }) {
         </div>
 
         <div className="flow">
-          <span className="stat-label">Last 90 days</span>
+          <span className="stat-label">Last 90&nbsp;days</span>
           <div><span>Income</span><b className="good">{money.format(flow.income / 100)}</b></div>
           <div><span>Spent</span><b className="bad">{money.format(flow.spend / 100)}</b></div>
           <div><span>Saved</span><b>{money.format(flow.saved / 100)}</b></div>

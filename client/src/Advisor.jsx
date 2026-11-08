@@ -123,7 +123,7 @@ function Result({ r, rules, choice, onProject, onAccepted }) {
       <p className="explanation">{r.explanation.text}</p>
 
       <div className="chances">
-        <Chance label={`Overdraft chance · next ${f.horizon_days} days`} value={f.baseline.share_below_zero} />
+        <Chance label={`Overdraft chance · next ${f.horizon_days}\u00a0days`} value={f.baseline.share_below_zero} />
         {withWhatIf && <Chance label="…with this change" value={f.scenario.share_below_zero} />}
       </div>
 
