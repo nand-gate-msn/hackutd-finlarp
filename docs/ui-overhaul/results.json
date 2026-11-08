@@ -1,0 +1,36 @@
+{
+  "results": [
+    "forecast scrubbing uses stable tabular digit widths",
+    "modal close/reopen retargets without replacing the dialog",
+    "dark 1280px: no horizontal overflow; text >=12px",
+    "dark 390px: no horizontal overflow; text >=12px",
+    "dark: sheet snap, drag-to-dismiss, focus release and mid-exit reopen",
+    "light 1280px: no horizontal overflow; text >=12px",
+    "light 390px: no horizontal overflow; text >=12px",
+    "light: sheet snap, drag-to-dismiss, focus release and mid-exit reopen",
+    "dark prefers-reduced-motion: reduce",
+    "dark prefers-reduced-transparency: reduce",
+    "dark prefers-contrast: more",
+    "dark forced-colors: active",
+    "light prefers-reduced-motion: reduce",
+    "light prefers-reduced-transparency: reduce",
+    "light prefers-contrast: more",
+    "light forced-colors: active",
+    "long alias/category strings wrap or expose full titles"
+  ],
+  "errors": [],
+  "graph_checks": [
+    "Edge drag preserves the grab offset",
+    "Pan coasts and settles inside graph bounds",
+    "Two-pointer pinch increases scale",
+    "Reduced-motion zoom settles immediately"
+  ],
+  "control_checks": [
+    "Reduced-motion sheet settles immediately",
+    "Half-height sheet footer remains in the viewport",
+    "Ask and Working button labels both occupy 120px",
+    "Interrupted segmented thumb settles on the selected button"
+  ],
+  "contrast_pairs": 632,
+  "contrast_minimum_text": 4.504
+}

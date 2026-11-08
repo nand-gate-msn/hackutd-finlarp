@@ -30,6 +30,12 @@ for (const theme of ['light','dark']) {
    const bg=blend(m.slice(2,5).map(Number),backdrop,+m[5])
    for(const fg of ['ink','ink-muted']) check(`${m[1]} ${fg} / ${mark} or extreme`,t[fg],bg)
    check(`${m[1]} focus / ${mark} or extreme`,t.accent,bg,3)
+   if (m[1] === 'bg') for (const [state, alpha] of [['hover', theme === 'light' ? .06 : .07], ['pressed', theme === 'light' ? .12 : .13]]) {
+    // Glass controls switch muted resting labels to ink while hovered/pressed.
+    const overlay = blend(theme === 'light' ? t.ink : [255,255,255], bg, alpha)
+    check(`${m[1]} ${state} ink / ${mark} or extreme`, t.ink, overlay)
+    check(`${m[1]} ${state} focus / ${mark} or extreme`, t.accent, overlay, 3)
+   }
   }
  }
 }

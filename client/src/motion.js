@@ -4,7 +4,7 @@ export const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: r
 export function createSpring(initial, update, { damping = 1, response = .4 } = {}) {
   let value = { ...initial }, target = { ...initial }
   let velocity = Object.fromEntries(Object.keys(initial).map(key => [key, 0]))
-  let frame = 0, last = 0
+  let frame = 0, last = 0, currentDamping = damping
   const preference = window.matchMedia('(prefers-reduced-motion: reduce)')
   const stop = () => { cancelAnimationFrame(frame); frame = 0; last = 0 }
   const set = next => {
@@ -19,15 +19,15 @@ export function createSpring(initial, update, { damping = 1, response = .4 } = {
     let done = true
     for (const key of Object.keys(value)) {
       const x = value[key] - target[key], v = velocity[key]
-      if (damping === 1) {
+      if (currentDamping === 1) {
         const b = v + w * x, decay = Math.exp(-w * dt)
         value[key] = target[key] + (x + b * dt) * decay
         velocity[key] = (v - w * b * dt) * decay
       } else {
-        const wd = w * Math.sqrt(1 - damping * damping), decay = Math.exp(-damping * w * dt)
-        const b = (v + damping * w * x) / wd, c = Math.cos(wd * dt), s = Math.sin(wd * dt)
+        const wd = w * Math.sqrt(1 - currentDamping * currentDamping), decay = Math.exp(-currentDamping * w * dt)
+        const b = (v + currentDamping * w * x) / wd, c = Math.cos(wd * dt), s = Math.sin(wd * dt)
         value[key] = target[key] + decay * (x * c + b * s)
-        velocity[key] = decay * ((b * wd - damping * w * x) * c - (x * wd + damping * w * b) * s)
+        velocity[key] = decay * ((b * wd - currentDamping * w * x) * c - (x * wd + currentDamping * w * b) * s)
       }
       const tolerance = key === 'k' ? .0001 : .05
       if (Math.abs(value[key] - target[key]) > tolerance || Math.abs(velocity[key]) > tolerance) done = false
@@ -42,7 +42,8 @@ export function createSpring(initial, update, { damping = 1, response = .4 } = {
     get value() { return { ...value } },
     get velocity() { return { ...velocity } },
     set, stop,
-    to(next, handoff) {
+    to(next, handoff, options = {}) {
+      currentDamping = options.damping ?? damping
       target = { ...next }
       if (handoff) velocity = { ...velocity, ...handoff }
       if (preference.matches) { set(target); return }

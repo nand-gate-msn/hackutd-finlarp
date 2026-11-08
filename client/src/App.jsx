@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 import Advisor from './Advisor'
+import CopilotPanel from './CopilotPanel'
 import GraphView from './GraphView'
 import Metrics from './Metrics'
 import { fmtDate, money, titleCase } from './format'
@@ -173,9 +174,9 @@ export default function App() {
         </>
       )}
     </main>
-    <aside className="sidebar">
+    <CopilotPanel>
       <Advisor rules={rules} choice={projection?.choice ?? null} onDecision={() => setHealthTick((t) => t + 1)} onProject={setProjection} />
-    </aside>
+    </CopilotPanel>
     </div>
   )
 }

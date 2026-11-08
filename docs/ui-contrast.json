@@ -295,6 +295,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / canvas or extreme",
+    "ratio": 14.875,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / canvas or extreme",
+    "ratio": 4.834,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / canvas or extreme",
+    "ratio": 13.149,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / canvas or extreme",
+    "ratio": 4.273,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / canvas or extreme",
     "ratio": 13.46,
     "minimum": 4.5
@@ -313,6 +337,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / canvas or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / canvas or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / canvas or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / canvas or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / canvas or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -331,6 +379,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / canvas or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / canvas or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / canvas or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / canvas or extreme",
+    "ratio": 4.308,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / surface or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -345,6 +417,30 @@
     "theme": "light",
     "pair": "bg focus / surface or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / surface or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / surface or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / surface or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / surface or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -367,6 +463,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / surface or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / surface or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / surface or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / surface or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / surface or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -381,6 +501,30 @@
     "theme": "light",
     "pair": "bg focus / surface or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / surface or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / surface or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / surface or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / surface or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -403,6 +547,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / ink or extreme",
+    "ratio": 12.328,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / ink or extreme",
+    "ratio": 4.006,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / ink or extreme",
+    "ratio": 10.938,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / ink or extreme",
+    "ratio": 3.554,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / ink or extreme",
     "ratio": 13.46,
     "minimum": 4.5
@@ -421,6 +589,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / ink or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / ink or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / ink or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / ink or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / ink or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -435,6 +627,30 @@
     "theme": "light",
     "pair": "bg focus / ink or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / ink or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / ink or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / ink or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / ink or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -457,6 +673,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / ink-muted or extreme",
+    "ratio": 13.077,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / ink-muted or extreme",
+    "ratio": 4.249,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / ink-muted or extreme",
+    "ratio": 11.588,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / ink-muted or extreme",
+    "ratio": 3.766,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / ink-muted or extreme",
     "ratio": 13.46,
     "minimum": 4.5
@@ -475,6 +715,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / ink-muted or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / ink-muted or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / ink-muted or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / ink-muted or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / ink-muted or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -489,6 +753,30 @@
     "theme": "light",
     "pair": "bg focus / ink-muted or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / ink-muted or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / ink-muted or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / ink-muted or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / ink-muted or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -511,6 +799,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / accent or extreme",
+    "ratio": 13.127,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / accent or extreme",
+    "ratio": 4.266,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / accent or extreme",
+    "ratio": 11.632,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / accent or extreme",
+    "ratio": 3.78,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / accent or extreme",
     "ratio": 13.46,
     "minimum": 4.5
@@ -529,6 +841,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / accent or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / accent or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / accent or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / accent or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / accent or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -543,6 +879,30 @@
     "theme": "light",
     "pair": "bg focus / accent or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / accent or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / accent or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / accent or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / accent or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -565,6 +925,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / positive or extreme",
+    "ratio": 13.031,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / positive or extreme",
+    "ratio": 4.235,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / positive or extreme",
+    "ratio": 11.549,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / positive or extreme",
+    "ratio": 3.753,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / positive or extreme",
     "ratio": 13.46,
     "minimum": 4.5
@@ -583,6 +967,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / positive or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / positive or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / positive or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / positive or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / positive or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -597,6 +1005,30 @@
     "theme": "light",
     "pair": "bg focus / positive or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / positive or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / positive or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / positive or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / positive or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -619,6 +1051,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / caution or extreme",
+    "ratio": 12.956,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / caution or extreme",
+    "ratio": 4.21,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / caution or extreme",
+    "ratio": 11.483,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / caution or extreme",
+    "ratio": 3.732,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / caution or extreme",
     "ratio": 13.46,
     "minimum": 4.5
@@ -637,6 +1093,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / caution or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / caution or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / caution or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / caution or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / caution or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -651,6 +1131,30 @@
     "theme": "light",
     "pair": "bg focus / caution or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / caution or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / caution or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / caution or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / caution or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -673,6 +1177,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / warning or extreme",
+    "ratio": 12.947,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / warning or extreme",
+    "ratio": 4.207,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / warning or extreme",
+    "ratio": 11.475,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / warning or extreme",
+    "ratio": 3.729,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / warning or extreme",
     "ratio": 13.46,
     "minimum": 4.5
@@ -691,6 +1219,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / warning or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / warning or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / warning or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / warning or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / warning or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -705,6 +1257,30 @@
     "theme": "light",
     "pair": "bg focus / warning or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / warning or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / warning or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / warning or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / warning or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -727,6 +1303,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / negative or extreme",
+    "ratio": 12.744,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / negative or extreme",
+    "ratio": 4.141,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / negative or extreme",
+    "ratio": 11.299,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / negative or extreme",
+    "ratio": 3.672,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / negative or extreme",
     "ratio": 13.46,
     "minimum": 4.5
@@ -745,6 +1345,30 @@
   },
   {
     "theme": "light",
+    "pair": "bg hover ink / negative or extreme",
+    "ratio": 12.01,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / negative or extreme",
+    "ratio": 3.903,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / negative or extreme",
+    "ratio": 10.662,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / negative or extreme",
+    "ratio": 3.465,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
     "pair": "bg ink / negative or extreme",
     "ratio": 16.877,
     "minimum": 4.5
@@ -759,6 +1383,30 @@
     "theme": "light",
     "pair": "bg focus / negative or extreme",
     "ratio": 5.484,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover ink / negative or extreme",
+    "ratio": 15,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg hover focus / negative or extreme",
+    "ratio": 4.874,
+    "minimum": 3
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed ink / negative or extreme",
+    "ratio": 13.257,
+    "minimum": 4.5
+  },
+  {
+    "theme": "light",
+    "pair": "bg pressed focus / negative or extreme",
+    "ratio": 4.308,
     "minimum": 3
   },
   {
@@ -1543,6 +2191,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / canvas or extreme",
+    "ratio": 12.172,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / canvas or extreme",
+    "ratio": 4.783,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / canvas or extreme",
+    "ratio": 9.994,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / canvas or extreme",
+    "ratio": 3.927,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / canvas or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1561,6 +2233,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / canvas or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / canvas or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / canvas or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / canvas or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / canvas or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -1575,6 +2271,30 @@
     "theme": "dark",
     "pair": "bg focus / canvas or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / canvas or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / canvas or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / canvas or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / canvas or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
@@ -1597,6 +2317,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / surface or extreme",
+    "ratio": 12.083,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / surface or extreme",
+    "ratio": 4.748,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / surface or extreme",
+    "ratio": 9.917,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / surface or extreme",
+    "ratio": 3.897,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / surface or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1615,6 +2359,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / surface or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / surface or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / surface or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / surface or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / surface or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -1629,6 +2397,30 @@
     "theme": "dark",
     "pair": "bg focus / surface or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / surface or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / surface or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / surface or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / surface or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
@@ -1651,6 +2443,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / ink or extreme",
+    "ratio": 10.24,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / ink or extreme",
+    "ratio": 4.024,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / ink or extreme",
+    "ratio": 8.385,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / ink or extreme",
+    "ratio": 3.295,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / ink or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1669,6 +2485,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / ink or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / ink or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / ink or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / ink or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / ink or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -1683,6 +2523,30 @@
     "theme": "dark",
     "pair": "bg focus / ink or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / ink or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / ink or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / ink or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / ink or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
@@ -1705,6 +2569,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / ink-muted or extreme",
+    "ratio": 10.883,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / ink-muted or extreme",
+    "ratio": 4.276,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / ink-muted or extreme",
+    "ratio": 8.908,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / ink-muted or extreme",
+    "ratio": 3.5,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / ink-muted or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1723,6 +2611,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / ink-muted or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / ink-muted or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / ink-muted or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / ink-muted or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / ink-muted or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -1737,6 +2649,30 @@
     "theme": "dark",
     "pair": "bg focus / ink-muted or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / ink-muted or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / ink-muted or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / ink-muted or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / ink-muted or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
@@ -1759,6 +2695,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / accent or extreme",
+    "ratio": 11.011,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / accent or extreme",
+    "ratio": 4.326,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / accent or extreme",
+    "ratio": 9.015,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / accent or extreme",
+    "ratio": 3.542,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / accent or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1777,6 +2737,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / accent or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / accent or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / accent or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / accent or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / accent or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -1791,6 +2775,30 @@
     "theme": "dark",
     "pair": "bg focus / accent or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / accent or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / accent or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / accent or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / accent or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
@@ -1813,6 +2821,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / positive or extreme",
+    "ratio": 10.645,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / positive or extreme",
+    "ratio": 4.183,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / positive or extreme",
+    "ratio": 8.718,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / positive or extreme",
+    "ratio": 3.425,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / positive or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1831,6 +2863,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / positive or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / positive or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / positive or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / positive or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / positive or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -1845,6 +2901,30 @@
     "theme": "dark",
     "pair": "bg focus / positive or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / positive or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / positive or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / positive or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / positive or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
@@ -1867,6 +2947,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / caution or extreme",
+    "ratio": 10.52,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / caution or extreme",
+    "ratio": 4.134,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / caution or extreme",
+    "ratio": 8.612,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / caution or extreme",
+    "ratio": 3.384,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / caution or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1885,6 +2989,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / caution or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / caution or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / caution or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / caution or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / caution or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -1899,6 +3027,30 @@
     "theme": "dark",
     "pair": "bg focus / caution or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / caution or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / caution or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / caution or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / caution or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
@@ -1921,6 +3073,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / warning or extreme",
+    "ratio": 10.855,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / warning or extreme",
+    "ratio": 4.265,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / warning or extreme",
+    "ratio": 8.886,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / warning or extreme",
+    "ratio": 3.491,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / warning or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1939,6 +3115,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / warning or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / warning or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / warning or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / warning or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / warning or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -1953,6 +3153,30 @@
     "theme": "dark",
     "pair": "bg focus / warning or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / warning or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / warning or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / warning or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / warning or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
@@ -1975,6 +3199,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / negative or extreme",
+    "ratio": 11.03,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / negative or extreme",
+    "ratio": 4.334,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / negative or extreme",
+    "ratio": 9.031,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / negative or extreme",
+    "ratio": 3.548,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / negative or extreme",
     "ratio": 14.828,
     "minimum": 4.5
@@ -1993,6 +3241,30 @@
   },
   {
     "theme": "dark",
+    "pair": "bg hover ink / negative or extreme",
+    "ratio": 12.307,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / negative or extreme",
+    "ratio": 4.836,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / negative or extreme",
+    "ratio": 10.111,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / negative or extreme",
+    "ratio": 3.973,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
     "pair": "bg ink / negative or extreme",
     "ratio": 12.455,
     "minimum": 4.5
@@ -2007,6 +3279,30 @@
     "theme": "dark",
     "pair": "bg focus / negative or extreme",
     "ratio": 4.894,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover ink / negative or extreme",
+    "ratio": 10.062,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg hover focus / negative or extreme",
+    "ratio": 3.954,
+    "minimum": 3
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed ink / negative or extreme",
+    "ratio": 8.242,
+    "minimum": 4.5
+  },
+  {
+    "theme": "dark",
+    "pair": "bg pressed focus / negative or extreme",
+    "ratio": 3.238,
     "minimum": 3
   },
   {
