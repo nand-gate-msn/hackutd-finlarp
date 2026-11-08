@@ -31,7 +31,7 @@ Finlarp is a professional cash flow app for bank customers: accounts, bills, spe
 
 ## 3. Colour
 
-A deliberately small palette: **20 tokens**. Two themes, `light` and `dark`, from one set. The accent is **#0069AA** in light and **#5DB4EC** in dark (a lighter tint so it keeps contrast on dark surfaces). It works as button fill, as text and as the focus ring, so no separate hover, text or focus colours exist: hover and press are the `state-hover` and `state-pressed` overlays on any fill.
+A deliberately small palette: **20 tokens**. Two themes, `light` and `dark`, from one set. The accent is **#3668b8** in light and **#6794dc** in dark (a lighter tint so it keeps contrast on dark surfaces). It works as button fill, as text and as the focus ring, so no separate hover, text or focus colours exist: hover and press are the `state-hover` and `state-pressed` overlays on any fill.
 
 | Token | Light | Dark | Role |
 | --- | --- | --- | --- |
@@ -41,9 +41,9 @@ A deliberately small palette: **20 tokens**. Two themes, `light` and `dark`, fro
 | `line-control` | `#7b8089` | `#6f757e` | Borders of controls (input, account and bill nodes), unselected stepper marks, payment edges, node handles. At least 3:1 on `canvas` and `surface`. Replaces `--edge-pay` and `--border` on controls. |
 | `ink` | `#1b1d21` | `#e8eaed` | Primary text and figures on `canvas`, `surface`, `track`, `accent-subtle`; also the bill marker. Replaces `--text`. |
 | `ink-muted` | `#596068` | `#9aa0a8` | Secondary text, eyebrows, helper text, placeholders and the spending marker on `canvas`, `surface`, `track`. Replaces `--muted`. |
-| `accent` | `#0069aa` | `#5db4ec` | The one brand colour, a muted banking blue. Primary button fill, links and accent text, focus ring, selected outlines, transfer edges, account marker. At least 4.5:1 as text on `canvas`, `surface`, `track` and `accent-subtle`. Replaces `--accent`, `--n-account`. |
+| `accent` | `#3668b8` | `#6794dc` | The one brand colour, a muted banking blue. Primary button fill, links and accent text, focus ring, selected outlines, transfer edges, account marker. At least 4.5:1 as text on `canvas`, `surface`, `track` and `accent-subtle`. Replaces `--accent`, `--n-account`. |
 | `on-solid` | `#ffffff` | `#0e0f11` | Text on `accent` and `negative` fills. White on light; near-black on dark because the dark accent is a light tint. Replaces literal `#fff`. |
-| `accent-subtle` | `#e3eff8` | `#102838` | Selected chip, selected table row and accent badge background. Text on it uses `accent` or `ink`. |
+| `accent-subtle` | `#e6eefa` | `#14233a` | Selected chip, selected table row and accent badge background. Text on it uses `accent` or `ink`. |
 | `positive` | `#127436` | `#4ade80` | Positive tone: figures and words on `surface`, `canvas`, `positive-subtle` (4.5:1), and bar, gauge, income-marker and completed-step fills (3:1 on `track`). Replaces `--good`, `--n-income`. |
 | `positive-subtle` | `#e6f4ea` | `#12301f` | Background of a positive badge. |
 | `caution` | `#854d0e` | `#facc15` | Caution tone (score 60-79): words and figures at 4.5:1 and fills at 3:1. An amber-brown in light so text reads. Replaces `--ok`. |
@@ -668,7 +668,7 @@ The palette drops from 30 colour tokens to 20: neutral grays, one blue, four ton
 | `--text` | `ink` | |
 | `--muted` | `ink-muted` | |
 | `--border` | `track` (fills, dividers), `line-control` (control edges) | One quiet gray; dividers share it |
-| `--accent` (#2563eb / #60a5fa) | `accent` (#0069AA / #5DB4EC) | Muted banking blue; also used as text |
+| `--accent` (#2563eb / #60a5fa) | `accent` (#3668b8 / #6794dc) | Muted banking blue; also used as text |
 | `--n-account` | `accent` | Merged |
 | `--good`, `--n-income` | `positive` | One colour for text and fill |
 | `--bad` | `negative` | |
@@ -749,7 +749,7 @@ Old pixel values snap to the nearest step: 1-5 → `space-1` (4) · 6-8 → `spa
 
 ## Appendix A. Contrast ratios
 
-Every text and graphic pair the components paint was computed with the WCAG 2 formula. All pairs pass in both themes. Minimums: 4.5 for text under 24px, 3 for graphics, control borders and the focus ring. The accent is #0069AA in light, a lighter tint in dark; in both it works as button fill, as text and as focus ring.
+Every text and graphic pair the components paint was computed with the WCAG 2 formula. All pairs pass in both themes. Minimums: 4.5 for text under 24px, 3 for graphics, control borders and the focus ring. The accent is #3668b8 in light, a lighter tint in dark; in both it works as button fill, as text and as focus ring.
 
 ### Light
 | Pair | Foreground | Background | Ratio | Minimum |
@@ -757,15 +757,15 @@ Every text and graphic pair the components paint was computed with the WCAG 2 fo
 | Body text on canvas | `ink` #1b1d21 | `canvas` #f5f5f6 | 15.49 | 4.5 (text) |
 | Body text on surface | `ink` #1b1d21 | `surface` #ffffff | 16.88 | 4.5 (text) |
 | Body text on track | `ink` #1b1d21 | `track` #e8eaed | 14.00 | 4.5 (text) |
-| Body text on accent-subtle | `ink` #1b1d21 | `accent-subtle` #e3eff8 | 14.44 | 4.5 (text) |
+| Body text on accent-subtle | `ink` #1b1d21 | `accent-subtle` #e6eefa | 14.45 | 4.5 (text) |
 | Secondary text on canvas | `ink-muted` #596068 | `canvas` #f5f5f6 | 5.84 | 4.5 (text) |
 | Secondary text on surface | `ink-muted` #596068 | `surface` #ffffff | 6.37 | 4.5 (text) |
 | Secondary text on track | `ink-muted` #596068 | `track` #e8eaed | 5.28 | 4.5 (text) |
-| Accent text on canvas | `accent` #0069aa | `canvas` #f5f5f6 | 5.35 | 4.5 (text) |
-| Accent text on surface | `accent` #0069aa | `surface` #ffffff | 5.83 | 4.5 (text) |
-| Accent text on track | `accent` #0069aa | `track` #e8eaed | 4.84 | 4.5 (text) |
-| Accent text on accent-subtle | `accent` #0069aa | `accent-subtle` #e3eff8 | 4.99 | 4.5 (text) |
-| Button label on accent fill | `on-solid` #ffffff | `accent` #0069aa | 5.83 | 4.5 (text) |
+| Accent text on canvas | `accent` #3668b8 | `canvas` #f5f5f6 | 5.03 | 4.5 (text) |
+| Accent text on surface | `accent` #3668b8 | `surface` #ffffff | 5.48 | 4.5 (text) |
+| Accent text on track | `accent` #3668b8 | `track` #e8eaed | 4.55 | 4.5 (text) |
+| Accent text on accent-subtle | `accent` #3668b8 | `accent-subtle` #e6eefa | 4.69 | 4.5 (text) |
+| Button label on accent fill | `on-solid` #ffffff | `accent` #3668b8 | 5.48 | 4.5 (text) |
 | Button label on negative fill | `on-solid` #ffffff | `negative` #b42318 | 6.57 | 4.5 (text) |
 | positive text on positive-subtle (badge) | `positive` #127436 | `positive-subtle` #e6f4ea | 5.17 | 4.5 (text) |
 | positive text on surface | `positive` #127436 | `surface` #ffffff | 5.87 | 4.5 (text) |
@@ -792,9 +792,9 @@ Every text and graphic pair the components paint was computed with the WCAG 2 fo
 | warning fill on surface | `warning` #b93c0a | `surface` #ffffff | 5.65 | 3 (graphic) |
 | negative fill on surface | `negative` #b42318 | `surface` #ffffff | 6.57 | 3 (graphic) |
 | Control border on surface | `line-control` #7b8089 | `surface` #ffffff | 3.97 | 3 (graphic) |
-| Focus ring on surface | `accent` #0069aa | `surface` #ffffff | 5.83 | 3 (graphic) |
+| Focus ring on surface | `accent` #3668b8 | `surface` #ffffff | 5.48 | 3 (graphic) |
 | Control border on canvas | `line-control` #7b8089 | `canvas` #f5f5f6 | 3.64 | 3 (graphic) |
-| Focus ring on canvas | `accent` #0069aa | `canvas` #f5f5f6 | 5.35 | 3 (graphic) |
+| Focus ring on canvas | `accent` #3668b8 | `canvas` #f5f5f6 | 5.03 | 3 (graphic) |
 | Text on drawer over black backdrop | `ink` #1b1d21 | #cccccc | 10.51 | 4.5 (text) |
 | Text on drawer over white backdrop | `ink` #1b1d21 | #ffffff | 16.88 | 4.5 (text) |
 
@@ -804,15 +804,15 @@ Every text and graphic pair the components paint was computed with the WCAG 2 fo
 | Body text on canvas | `ink` #e8eaed | `canvas` #0e0f11 | 15.91 | 4.5 (text) |
 | Body text on surface | `ink` #e8eaed | `surface` #17191c | 14.61 | 4.5 (text) |
 | Body text on track | `ink` #e8eaed | `track` #2a2d32 | 11.46 | 4.5 (text) |
-| Body text on accent-subtle | `ink` #e8eaed | `accent-subtle` #102838 | 12.60 | 4.5 (text) |
+| Body text on accent-subtle | `ink` #e8eaed | `accent-subtle` #14233a | 13.09 | 4.5 (text) |
 | Secondary text on canvas | `ink-muted` #9aa0a8 | `canvas` #0e0f11 | 7.28 | 4.5 (text) |
 | Secondary text on surface | `ink-muted` #9aa0a8 | `surface` #17191c | 6.68 | 4.5 (text) |
 | Secondary text on track | `ink-muted` #9aa0a8 | `track` #2a2d32 | 5.24 | 4.5 (text) |
-| Accent text on canvas | `accent` #5db4ec | `canvas` #0e0f11 | 8.41 | 4.5 (text) |
-| Accent text on surface | `accent` #5db4ec | `surface` #17191c | 7.72 | 4.5 (text) |
-| Accent text on track | `accent` #5db4ec | `track` #2a2d32 | 6.06 | 4.5 (text) |
-| Accent text on accent-subtle | `accent` #5db4ec | `accent-subtle` #102838 | 6.66 | 4.5 (text) |
-| Button label on accent fill | `on-solid` #0e0f11 | `accent` #5db4ec | 8.41 | 4.5 (text) |
+| Accent text on canvas | `accent` #6794dc | `canvas` #0e0f11 | 6.25 | 4.5 (text) |
+| Accent text on surface | `accent` #6794dc | `surface` #17191c | 5.74 | 4.5 (text) |
+| Accent text on track | `accent` #6794dc | `track` #2a2d32 | 4.50 | 4.5 (text) |
+| Accent text on accent-subtle | `accent` #6794dc | `accent-subtle` #14233a | 5.14 | 4.5 (text) |
+| Button label on accent fill | `on-solid` #0e0f11 | `accent` #6794dc | 6.25 | 4.5 (text) |
 | Button label on negative fill | `on-solid` #0e0f11 | `negative` #f87171 | 6.93 | 4.5 (text) |
 | positive text on positive-subtle (badge) | `positive` #4ade80 | `positive-subtle` #12301f | 8.21 | 4.5 (text) |
 | positive text on surface | `positive` #4ade80 | `surface` #17191c | 10.11 | 4.5 (text) |
@@ -839,9 +839,9 @@ Every text and graphic pair the components paint was computed with the WCAG 2 fo
 | warning fill on surface | `warning` #fb923c | `surface` #17191c | 7.78 | 3 (graphic) |
 | negative fill on surface | `negative` #f87171 | `surface` #17191c | 6.37 | 3 (graphic) |
 | Control border on surface | `line-control` #6f757e | `surface` #17191c | 3.79 | 3 (graphic) |
-| Focus ring on surface | `accent` #5db4ec | `surface` #17191c | 7.72 | 3 (graphic) |
+| Focus ring on surface | `accent` #6794dc | `surface` #17191c | 5.74 | 3 (graphic) |
 | Control border on canvas | `line-control` #6f757e | `canvas` #0e0f11 | 4.13 | 3 (graphic) |
-| Focus ring on canvas | `accent` #5db4ec | `canvas` #0e0f11 | 8.41 | 3 (graphic) |
+| Focus ring on canvas | `accent` #6794dc | `canvas` #0e0f11 | 6.25 | 3 (graphic) |
 | Text on drawer over black backdrop | `ink` #e8eaed | #121416 | 15.32 | 4.5 (text) |
 | Text on drawer over white backdrop | `ink` #e8eaed | #454749 | 7.74 | 4.5 (text) |
 
