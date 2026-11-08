@@ -45,6 +45,11 @@ METRIC_FORMULAS: dict[str, str] = {
 }
 
 
+# Slot names the Explainer sees. No digits in a name, or the model copies them into prose ("30-day"),
+# and digits outside slots are rejected.
+SLOT_NAMES = {"overdraft_probability_30d": "overdraft_chance_month"}
+
+
 class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -122,9 +127,11 @@ class FactPack(_Model):
         for c in self.categories:
             s[f"{c.group.lower()}_share"] = f"{c.share_of_outflow:.0%}"
         for m in self.metrics:
-            s[m.key] = f"{m.value:.2f}"
+            # runway is in days; every other metric is a 0-1 ratio and reads best as a percentage
+            slot = SLOT_NAMES.get(m.key, m.key)
+            s[slot] = f"{m.value:.0f} days" if m.key == "cash_runway" else f"{m.value:.0%}"
         s["share_below_zero"] = f"{self.forecast.share_below_zero:.0%}"
-        s["horizon_days"] = str(self.forecast.horizon_days)
+        s["horizon_days"] = f"{self.forecast.horizon_days} days"
         if self.scenario and self.scenario.kind != "none":
             s["scenario_payment_ratio"] = f"{self.scenario.payment_ratio_of_income:.0%}"
         return s

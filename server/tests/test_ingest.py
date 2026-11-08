@@ -163,8 +163,9 @@ def test_overall_fin_health_is_persisted_and_readable(loaded):
 
 
 def test_app_has_no_external_dependencies_at_import_time():
-    """No Nessie, no Supabase, no HTTP client: loading the app must not import any of them."""
-    code = ("import sys, app.main; bad = [m for m in ('httpx', 'app.nessie', 'supabase') if m in sys.modules]; "
+    """No Nessie, no Supabase: loading the app must not import either. (httpx is fine now: it is the
+    NVIDIA client, and every request goes through make_client's logging.)"""
+    code = ("import sys, app.main; bad = [m for m in ('app.nessie', 'supabase') if m in sys.modules]; "
             "print(','.join(bad))")
     out = subprocess.run([sys.executable, "-c", code], cwd=SERVER, capture_output=True, text=True, check=True)
     assert out.stdout.strip() == ""

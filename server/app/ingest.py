@@ -104,7 +104,7 @@ def load_history(h: History) -> dict:
         source = f"generator:{persona.key}"
         w.executemany("INSERT OR REPLACE INTO meta VALUES (?,?)", [
             ("loaded_at", now), ("source", source), ("persona", persona.key),
-            ("seed", str(h.seed)), ("months", str(h.months))])
+            ("seed", str(h.seed)), ("months", str(h.months)), ("end", h.end.isoformat())])
         graph_counts = rebuild_graph(w)
         health_report = refresh_overall_fin_health(w)
     return {"source": source, "accounts": len(acct), "transactions": len(txns),

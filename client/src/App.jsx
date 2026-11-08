@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-
-const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-const fmtDate = (d) => (d ? new Date(d + 'T00:00:00').toLocaleDateString() : '—')
-const titleCase = (s) => (s ? s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '—')
+import Advisor from './Advisor'
+import GraphView from './GraphView'
+import Metrics from './Metrics'
+import { fmtDate, money, titleCase } from './format'
 
 function Stat({ label, value, tone }) {
   return (
@@ -137,6 +137,11 @@ export default function App() {
             <Stat label="Bills" value={data.totals.bills} tone="bad" />
           </section>
 
+          <Advisor />
+          <Metrics />
+          <GraphView />
+
+          <h2 className="section-title">Accounts</h2>
           {data.accounts.length === 0 ? (
             <p className="state">This customer has no accounts yet.</p>
           ) : (

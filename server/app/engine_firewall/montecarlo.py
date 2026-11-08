@@ -69,8 +69,11 @@ def _find_recurring(
 		cadence = median(gaps)
 		if cadence < 2 or cadence > 45:
 			continue
-		cadence_tolerance = max(2, cadence * 0.10)
-		if any(abs(gap - cadence) > cadence_tolerance for gap in gaps):
+		# Real payments drift (weekend/holiday shifts, a late payment), so tolerate an
+		# occasional stray gap: up to 20% of gaps (never with fewer than 5 gaps).
+		cadence_tolerance = max(3, cadence * 0.10)
+		stray_gaps = sum(abs(gap - cadence) > cadence_tolerance for gap in gaps)
+		if stray_gaps > int(0.2 * len(gaps)):
 			continue
 
 		last_index = indexes[-1]
@@ -127,6 +130,39 @@ def _summarize(path_balances: np.ndarray, starting_balance_cents: int) -> dict[s
 	}
 
 
+def _as_streams(payments) -> list[Mapping[str, object]]:
+	if not payments:
+		return []
+	return list(payments) if isinstance(payments, (list, tuple)) else [payments]
+
+
+def _expand_streams(
+	streams: list[Mapping[str, object]], first_day: date, final_day: date
+) -> list[tuple[date, int]]:
+	"""Turn payment streams into dated (day, cents) events inside the forecast window."""
+	events: list[tuple[date, int]] = []
+	for stream in streams:
+		stream_date = _as_date(stream["date"])
+		stream_cents = int(stream["amount_cents"])
+		if stream_cents <= 0:
+			raise ValueError("scenario payment amount_cents must be positive")
+		if not first_day <= stream_date <= final_day:
+			raise ValueError("scenario payment date must fall within the forecast horizon")
+		days = [stream_date]
+		repeat_every = stream.get("repeat_every_days")
+		if repeat_every:
+			if int(repeat_every) < 1:
+				raise ValueError("repeat_every_days must be positive")
+			total = int(stream.get("count") or 10_000)
+			while len(days) < total:
+				following = days[-1] + timedelta(days=int(repeat_every))
+				if following > final_day:
+					break
+				days.append(following)
+		events.extend((day, stream_cents) for day in days)
+	return events
+
+
 def run_monte_carlo(
 	transactions: Iterable[Mapping[str, object]],
 	starting_balance_cents: int,
@@ -136,6 +172,7 @@ def run_monte_carlo(
 	paths: int = DEFAULT_PATHS,
 	account_alias: str | None = None,
 	as_of_date: date | str | None = None,
+	baseline_payments: Mapping[str, object] | list | None = None,
 ) -> dict[str, object]:
 	"""Report paired baseline and one-payment scenario forecasts in cents.
 
@@ -158,14 +195,20 @@ def run_monte_carlo(
 	if not rows:
 		raise ValueError("no transactions exist on or before as_of_date")
 
-	payment_date = _as_date(scenario_payment["date"])
-	payment_cents = int(scenario_payment["amount_cents"])
 	first_forecast_day = as_of + timedelta(days=1)
 	final_forecast_day = as_of + timedelta(days=horizon_days)
-	if payment_cents <= 0:
-		raise ValueError("scenario payment amount_cents must be positive")
-	if not first_forecast_day <= payment_date <= final_forecast_day:
-		raise ValueError("scenario payment date must fall within the forecast horizon")
+
+	# scenario_payment is one stream (a dict) or several (a list), e.g. a car loan plus a savings
+	# move. Each stream pays once, or repeats via "repeat_every_days" (+ "count" = total payments).
+	streams = _as_streams(scenario_payment)
+	if not streams:
+		raise ValueError("scenario_payment must contain at least one payment")
+	payment_events = _expand_streams(streams, first_forecast_day, final_forecast_day)
+	# baseline_payments (e.g. savings rules the customer already accepted) hit BOTH forecasts, so
+	# the baseline-vs-scenario difference is still only the scenario.
+	baseline_events = _expand_streams(_as_streams(baseline_payments), first_forecast_day, final_forecast_day)
+	payment_date = _as_date(streams[0]["date"])
+	payment_cents = int(streams[0]["amount_cents"])
 
 	recurring, recurring_indexes = _find_recurring(rows)
 	recurring_calendar = []
@@ -229,14 +272,16 @@ def run_monte_carlo(
 					variable_flows[path_index, day_index] += amount_cents
 
 	baseline_flows = variable_flows + recurring_flows[np.newaxis, :]
+	for event_day, cents in baseline_events:
+		baseline_flows[:, (event_day - first_forecast_day).days] -= cents
 	baseline_balances = starting_balance_cents + np.cumsum(baseline_flows, axis=1, dtype=np.int64)
 	scenario_flows = baseline_flows.copy()
-	payment_index = (payment_date - first_forecast_day).days
-	scenario_flows[:, payment_index] -= payment_cents
+	for payment_day, cents in payment_events:
+		scenario_flows[:, (payment_day - first_forecast_day).days] -= cents
 	scenario_balances = starting_balance_cents + np.cumsum(scenario_flows, axis=1, dtype=np.int64)
 
 	final_differences = scenario_balances[:, -1] - baseline_balances[:, -1]
-	expected_difference = -payment_cents
+	expected_difference = -sum(cents for _, cents in payment_events)
 	if not np.all(final_differences == expected_difference):
 		raise AssertionError("paired scenario paths differ by more than the scheduled payment")
 
@@ -250,7 +295,8 @@ def run_monte_carlo(
 		"scenario_payment": {
 			"date": payment_date.isoformat(),
 			"amount_cents": payment_cents,
-			"payee": scenario_payment.get("payee"),
+			"payee": streams[0].get("payee"),
+			"payments_in_horizon": len(payment_events),
 		},
 		"baseline": _summarize(baseline_balances, starting_balance_cents),
 		"scenario": _summarize(scenario_balances, starting_balance_cents),

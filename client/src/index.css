@@ -27,3 +27,16 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); }
+
+:root {
+  --edge-pay: #94a3b8;
+  --ok: #ca8a04;
+  --n-income: #16a34a; --n-account: #2563eb; --n-obligation: #d97706; --n-category: #64748b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --edge-pay: #64748b;
+    --ok: #facc15;
+    --n-income: #4ade80; --n-account: #60a5fa; --n-obligation: #fbbf24; --n-category: #94a3b8;
+  }
+}

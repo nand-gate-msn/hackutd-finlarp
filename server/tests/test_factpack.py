@@ -57,3 +57,4 @@ def test_slots_come_from_pack():
     assert slots["housing_share"] == "38%"
     assert slots["share_below_zero"] == "18%"
     assert slots["scenario_payment_ratio"] == "12%"
+    assert slots["savings_rate"] == "4%" and slots["cash_runway"] == "14 days"  # readable, with units
