@@ -1,3 +1,70 @@
+/* Inter 4, latin variable subset. SIL Open Font License: /fonts/OFL.txt. */
+@font-face {
+  font-family: 'Inter Variable';
+  src: url('/fonts/InterVariable.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+/* Arial metrics matched to Inter; used while the self-hosted face loads. */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107.12%;
+  ascent-override: 90.44%;
+  descent-override: 22.52%;
+  line-gap-override: 0%;
+}
+:root {
+  --font: 'Inter Variable', 'Inter Fallback', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  --text-xs: .75rem;
+  --text-sm: .8125rem;
+  --text-ui: .875rem;
+  --text-base: 1rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.875rem;
+  --text-3xl: 2.25rem;
+  --leading-body: 1.5;
+  --leading-ui: 1.4;
+  --leading-heading: 1.1;
+  --leading-title: 1.2;
+  --leading-display: 1;
+  --tracking-display: -.02em;
+  --tracking-heading: -.01em;
+  --tracking-caps: .05em;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(.2, 0, 0, 1);
+  --disabled-opacity: .4;
+  --control-sm: 32px;
+  --control-md: 40px;
+  --touch-min: 44px;
+  --drawer-width: 320px;
+  --measure: 65ch;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  line-height: var(--leading-body);
+}
 :root {
   --bg: #f6f7f9;
   --card: #ffffff;
@@ -7,7 +74,7 @@
   --accent: #2563eb;
   --good: #15803d;
   --bad: #b42318;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font);
   color: var(--text);
   background: var(--bg);
 }
