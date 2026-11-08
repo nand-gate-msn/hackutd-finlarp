@@ -1,4 +1,4 @@
-"""Scrub the customer's own typed words before the Planner (the only agent that reads them).
+"""Scrub the customer's own typed words before any model reads them (the Planner and the Explainer).
 
 Everything else the models see is built from a FactPack. The typed request is free text, so it is the
 one door a real name could slip through: "move money out of Everyday Checking at Oakwood Apartments".

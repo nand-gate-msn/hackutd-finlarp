@@ -67,6 +67,24 @@ class SimulationResult(BaseModel):
     tag: Literal["simulated"] = "simulated"
 
 
+class DailyBand(BaseModel):
+    """Per-day balance percentiles in cents (index 0 = the first forecast day)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    p10: list[int]
+    p50: list[int]
+    p90: list[int]
+
+
+class ForecastSeries(BaseModel):
+    """UI-ONLY chart data (real cents, real dates). Never put this in a prompt or a FactPack."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    start: str  # ISO date of day index 0
+    baseline: DailyBand  # life as it is (accepted rules included)
+    scenario: DailyBand  # with the scenario (and any proposed savings move)
+
+
 class RiskFlag(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     flag: Literal["overdraft", "payment_too_big", "low_buffer"]
@@ -179,6 +197,16 @@ def simulate(
     *,
     savings_percent: float = 0.0,
 ) -> SimulationResult:
+    """Forecast `horizon_days` with and without the scenario. The model-facing result: bands and shares only."""
+    return simulate_with_series(scenario, conn, savings_percent=savings_percent)[0]
+
+
+def simulate_with_series(
+    scenario: dict | ScenarioInput,
+    conn: sqlite3.Connection | None = None,
+    *,
+    savings_percent: float = 0.0,
+) -> tuple[SimulationResult, ForecastSeries]:
     """Forecast `horizon_days` with and without the scenario (5,000 paired paths).
 
     `savings_percent` adds a proposed rule on top: that % of every paycheck moves out of checking.
@@ -190,7 +218,7 @@ def simulate(
         raise ToolError("savings_percent must be between 0 and 30")
     if conn is None:
         with work_db() as c:
-            return simulate(sc, c, savings_percent=savings_percent)
+            return simulate_with_series(sc, c, savings_percent=savings_percent)
     data = _load(conn)
     as_of = date.fromisoformat(data["rows"][-1]["date"][:10])
     first_day = as_of + timedelta(days=FIRST_PAYMENT_OFFSET_DAYS)
@@ -230,9 +258,15 @@ def simulate(
     )
     out = data["monthly_outflow_cents"]
     baseline, scenario_part = _summary(mc["baseline"], out), _summary(mc["scenario"], out)
-    if len(streams) == 1 and streams[0]["amount_cents"] == 1:
+    no_change = len(streams) == 1 and streams[0]["amount_cents"] == 1
+    if no_change:
         scenario_part = baseline
-    return SimulationResult(
+    series = ForecastSeries(
+        start=(as_of + timedelta(days=1)).isoformat(),
+        baseline=DailyBand(**mc["baseline"]["daily_cents"]),
+        scenario=DailyBand(**(mc["baseline"] if no_change else mc["scenario"])["daily_cents"]),
+    )
+    result = SimulationResult(
         kind=sc.kind,
         horizon_days=sc.horizon_days,
         payment_ratio_of_income=sc.payment_ratio_of_income,
@@ -241,6 +275,7 @@ def simulate(
         scenario=scenario_part,
         added_share_below_zero=round(scenario_part.share_below_zero - baseline.share_below_zero, 4),
     )
+    return result, series
 
 
 _BAND_RANK = {"very_low": 0.0, "low": 0.25, "moderate": 0.5, "high": 0.75, "very_high": 1.0}

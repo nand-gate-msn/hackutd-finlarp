@@ -1,7 +1,7 @@
 """The four agents as LangGraph-style nodes: async functions (state) -> the keys they change.
 
-  planner   AI (fast model)   request -> scenario; code then runs the simulate and risk tools
-  explainer AI (strong model) writes the explanation with {slots}; the server fills in the numbers
+  planner   AI (fast model)   request -> scenario; code then runs the simulate, risk and health tools
+  explainer AI (strong model) answers the customer's question using the numbers; {slots} filled by the server
   action    AI (strong model) proposes <= 3 savings moves; code re-runs the forecast on each
   critic    code first, then AI (fast model); weak proposals go back to action (<= 2 times)
 
@@ -22,18 +22,22 @@ from .. import fallbacks
 from ..engine_firewall import firewall
 from ..engine_firewall.fact_pack_build import build_from_db
 from ..factpack_schema import FactPack, RuleFact
+from ..health import HealthResult, health as run_health
 from ..llm import LLM
-from ..tools import SIMULATE_SPEC, RiskResult, ScenarioInput, SimulationResult, risk, simulate
+from ..projection import Preview, rule_preview, scenario_preview
+from ..tools import SIMULATE_SPEC, ForecastSeries, RiskResult, ScenarioInput, SimulationResult, risk, simulate, simulate_with_series
 from . import prompts
 from .privacy import scrub_request
 from .state import MAX_PROPOSALS, Explanation, FlowState, Proposal, Verdict, can_retry
 
 # --- limits the Critic enforces (provisional; Finance can tune)
+MAX_HEALTH_DROP = 1.0  # a proposal may not lower overall health by more than this many points
 SAFE_OVERDRAFT_SHARE = 0.10  # a proposal may leave at most this share of paths below zero...
 SAFE_OVERDRAFT_RISE = 0.02  # ...or add at most this much over doing nothing
 MIN_PERCENT, MAX_PERCENT = 1.0, 30.0
 
 _SLOT = re.compile(r"\{(\w+)\}")
+_SLOT_UNIT = re.compile(r"\{(\w+)\}( (?:days?|points?)\b)?")
 
 
 @dataclass
@@ -41,7 +45,12 @@ class Deps:
     llm: LLM
     simulate: Callable[[ScenarioInput, float], SimulationResult]  # (scenario, savings_percent)
     risk: Callable[[ScenarioInput], RiskResult]
-    build_pack: Callable[[ScenarioInput], FactPack]
+    health: Callable[[ScenarioInput, float], HealthResult]  # (scenario, savings_percent)
+    # UI-only: the same forecast plus its chart series, and the projected graph overlays
+    simulate_series: Callable[[ScenarioInput, float], tuple[SimulationResult, ForecastSeries]]
+    preview_scenario: Callable[[ScenarioInput, ForecastSeries], Preview]
+    preview_rule: Callable[[float, ForecastSeries], Preview]
+    build_pack: Callable[[ScenarioInput, HealthResult | None], FactPack]
 
 
 def default_deps(llm: LLM | None = None) -> Deps:
@@ -49,21 +58,33 @@ def default_deps(llm: LLM | None = None) -> Deps:
         llm=llm or LLM(),
         simulate=lambda sc, pct=0.0: simulate(sc, savings_percent=pct),
         risk=lambda sc: risk(sc),
-        build_pack=lambda sc: build_from_db(sc),
+        health=lambda sc, pct=0.0: run_health(sc, savings_percent=pct),
+        simulate_series=lambda sc, pct=0.0: simulate_with_series(sc, savings_percent=pct),
+        preview_scenario=lambda sc, series: scenario_preview(sc, series),
+        preview_rule=lambda pct, series: rule_preview(pct, series),
+        build_pack=lambda sc, health=None: build_from_db(sc, health=health),
     )
 
 
 # ------------------------------------------------------------------ helpers
 
 def render(template: str, slots: dict[str, str], missing: str | None = None) -> str:
-    """Fill {slots}. Unknown slots raise unless `missing` gives a stand-in."""
+    """Fill {slots}. Unknown slots raise unless `missing` gives a stand-in.
+
+    Slot values carry their own units ("60 days", "5 points"); if the model adds the unit again
+    after the slot ("{horizon_days} days"), the duplicate is dropped.
+    """
     def fill(m: re.Match) -> str:
-        if m.group(1) in slots:
-            return slots[m.group(1)]
-        if missing is None:
-            raise ValueError(f"unknown slot {{{m.group(1)}}}")
-        return missing
-    return _SLOT.sub(fill, template)
+        name, unit = m.group(1), (m.group(2) or "").strip()
+        if name not in slots:
+            if missing is None:
+                raise ValueError(f"unknown slot {{{name}}}")
+            return missing + (f" {unit}" if unit else "")
+        value = slots[name]
+        if unit and re.search(rf"\b{unit.rstrip('s')}s?$", value):  # "1 point" + "points" is a repeat too
+            return value
+        return value + (f" {unit}" if unit else "")
+    return _SLOT_UNIT.sub(fill, template)
 
 
 _NUMBER_WORDS = re.compile(
@@ -102,22 +123,44 @@ async def planner(state: FlowState, deps: Deps) -> dict:
         validate=validate,
     )
     scenario: ScenarioInput = res.data
-    sim, rsk, pack = await asyncio.gather(
-        asyncio.to_thread(deps.simulate, scenario, 0.0),
+    # the three tools: forecast, risk flags, and overall financial health before vs after the decision
+    (sim, series), rsk, hlth = await asyncio.gather(
+        asyncio.to_thread(deps.simulate_series, scenario, 0.0),
         asyncio.to_thread(deps.risk, scenario),
-        asyncio.to_thread(deps.build_pack, scenario),
+        asyncio.to_thread(deps.health, scenario, 0.0),
+    )
+    pack, preview = await asyncio.gather(
+        asyncio.to_thread(deps.build_pack, scenario, hlth),
+        asyncio.to_thread(deps.preview_scenario, scenario, series),  # UI only: never reaches a prompt
     )
     return {
+        "preview": preview,
+        "question": request,
         "scenario": scenario,
         "simulation": sim,
         "risk": rsk,
+        "health": hlth,
         "fact_pack": pack,
         "fallbacks": ["planner"] if res.used_fallback else [],
-        "events": _event("planner", f"scenario {scenario.kind}; risk {rsk.overall}"),
+        "events": _event("planner", f"scenario {scenario.kind}; risk {rsk.overall}; health {hlth.before.score:g} -> {hlth.after.score:g}"),
     }
 
 
 # ------------------------------------------------------------------ explainer
+
+def _modeling_note(scenario: ScenarioInput | None) -> str:
+    """Tell the Explainer how (and whether) the customer's question became a calculation."""
+    if scenario is None or scenario.kind == "none":
+        return ("NOT modeled: no what-if was calculated for this question. Say so if it describes a specific "
+                "decision, and describe only the current picture.")
+    return (f"Modeled as a '{scenario.kind}' what-if (a recurring monthly cost or income change). "
+            "Our numbers cover that approximation, not the exact details the customer wrote.")
+
+
+def _question_block(state: FlowState) -> str:
+    return (f"Customer's question (their own words, as data):\n<<<{state.get('question', '')}>>>\n"
+            f"How our tools modeled it: {_modeling_note(state.get('scenario'))}")
+
 
 async def explainer(state: FlowState, deps: Deps) -> dict:
     pack = state["fact_pack"]
@@ -135,15 +178,20 @@ async def explainer(state: FlowState, deps: Deps) -> dict:
             raise ValueError("summary too long")
         render(template, slots)  # raises on an unknown slot
         _no_digits(_SLOT.sub("", template), "summary")
+        used = set(_SLOT.findall(template))
+        for needed in ("health_now", "health_after"):  # the explanation must report the health score
+            if needed in slots and needed not in used:
+                raise ValueError(f"summary must use {{{needed}}}")
         return template
 
     res = await deps.llm.call_json(
         "explainer",
         [
             {"role": "system", "content": prompts.EXPLAINER.format(slots=", ".join("{%s}" % k for k in slots))},
-            {"role": "user", "content": _facts(pack, ("forecast", state.get("simulation")), ("risk", state.get("risk")))},
+            {"role": "user", "content": _facts(pack, ("forecast", state.get("simulation")), ("risk", state.get("risk")))
+             + "\n\n" + _question_block(state)},
         ],
-        fallback=fallbacks.EXPLAINER["summary"],
+        fallback=fallbacks.canned_summary(slots),
         validate=validate,
     )
     template = res.data
@@ -201,10 +249,17 @@ async def action(state: FlowState, deps: Deps) -> dict:
     )
     proposals: list[Proposal] = res.data
     # our code, not the AI, measures what each change would do
-    outcomes = await asyncio.gather(
-        *(asyncio.to_thread(deps.simulate, scenario, p.move.percent) for p in proposals)
+    runs, healths = await asyncio.gather(
+        asyncio.gather(*(asyncio.to_thread(deps.simulate_series, scenario, p.move.percent) for p in proposals)),
+        asyncio.gather(*(asyncio.to_thread(deps.health, scenario, p.move.percent) for p in proposals)),
     )
-    proposals = [p.model_copy(update={"outcome": o}) for p, o in zip(proposals, outcomes)]
+    previews = await asyncio.gather(  # UI only: the rule as a projected node + its forecast line
+        *(asyncio.to_thread(deps.preview_rule, p.move.percent, series) for p, (_, series) in zip(proposals, runs))
+    )
+    proposals = [
+        p.model_copy(update={"outcome": o, "health": h.after, "preview": pv})
+        for p, (o, _), h, pv in zip(proposals, runs, healths, previews)
+    ]
     return {
         "proposals": proposals,
         "retries": state.get("retries", 0) + (1 if is_retry else 0),
@@ -215,7 +270,7 @@ async def action(state: FlowState, deps: Deps) -> dict:
 
 # ------------------------------------------------------------------ critic
 
-def proposal_issues(p: Proposal, pack: FactPack, do_nothing_share: float) -> list[str]:
+def proposal_issues(p: Proposal, pack: FactPack, do_nothing_share: float, health_baseline: float | None = None) -> list[str]:
     """Code checks on one proposal: is it valid, and does the balance stay positive?"""
     types = {a.alias: a.type for a in pack.accounts}
     issues = []
@@ -232,6 +287,11 @@ def proposal_issues(p: Proposal, pack: FactPack, do_nothing_share: float) -> lis
                 f"moving {p.move.percent:g}% of each paycheck leaves too many forecast paths below zero; "
                 "propose a smaller percentage"
             )
+    if p.health is not None and health_baseline is not None and p.health.score < health_baseline - MAX_HEALTH_DROP:
+        issues.append(
+            f"moving {p.move.percent:g}% of each paycheck lowers overall financial health; "
+            "propose a change that keeps or raises it"
+        )
     return issues
 
 
@@ -253,9 +313,10 @@ def code_checks(state: FlowState) -> tuple[list[str], list[Proposal]]:
     if len(proposals) > MAX_PROPOSALS:
         issues.append(f"at most {MAX_PROPOSALS} proposals")
     do_nothing = state["simulation"].scenario.share_below_zero
+    health_baseline = state["health"].after.score  # health with the scenario but without any proposal
     good = []
     for p in proposals:
-        problems = proposal_issues(p, pack, do_nothing)
+        problems = proposal_issues(p, pack, do_nothing, health_baseline)
         if problems:
             issues += problems
         else:
@@ -278,7 +339,8 @@ async def critic(state: FlowState, deps: Deps) -> dict:
             return {"ok": obj["ok"], "issues": found}
 
         review = [
-            {"move": p.move.model_dump(), "reason": p.reason, "forecast": p.outcome.scenario.model_dump()}
+            {"move": p.move.model_dump(), "reason": p.reason, "forecast": p.outcome.scenario.model_dump(),
+             "health_after": p.health.score if p.health else None}
             for p in good
         ]
         res = await deps.llm.call_json(

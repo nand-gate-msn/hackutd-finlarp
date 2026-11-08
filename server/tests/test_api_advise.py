@@ -68,6 +68,10 @@ def test_result_has_everything_the_screen_needs(client):
     assert "educational estimate" in result["explanation"]["text"] and not result["explanation"]["canned"]
     [p] = result["proposals"]
     assert p["percent"] == 3 and p["forecast"] is not None and p["reason"]
+    h = result["health"]
+    assert h["what_if"] and h["after"]["score"] < h["before"]["score"] and h["change"] < 0
+    assert h["drivers"][0]["label"] == "Housing and debt load" and h["drivers"][0]["effect"] == "worse"
+    assert p["health"]["score"] > h["after"]["score"] and p["health"]["change_vs_scenario"] > 0
     assert result["verdict"]["ok"] and result["retries"] == 0 and result["fallbacks"] == []
     assert "fact_pack" not in result  # what the model saw is not echoed back
 
@@ -86,11 +90,12 @@ def test_real_names_are_restored_for_the_customer_only(client):
     assert "Everyday Checking" not in json.dumps(client.fake.calls)  # the model never saw it
 
 
-def test_the_customers_words_reach_only_the_planner(client):
+def test_the_customers_words_reach_the_planner_and_explainer_but_not_action_or_critic(client):
     advise(client, "Can I afford a car? My name is Zelda Canary")
-    for role in ("explainer", "action", "critic"):
+    for role in ("action", "critic"):
         assert "Zelda" not in json.dumps(client.fake.calls[role])
-    assert "Zelda" in json.dumps(client.fake.calls["planner"])
+    assert "Zelda" in json.dumps(client.fake.calls["planner"])  # a first name is not a known private name...
+    assert "Can I afford a car?" in json.dumps(client.fake.calls["explainer"])  # ...and the question is explained
 
 
 def test_dead_model_still_streams_a_complete_result(client):
@@ -139,6 +144,8 @@ def test_accept_saves_the_rule_and_reruns_the_forecast_with_it(client):
     before, after = body["forecast"]["before"], body["forecast"]["after"]
     assert body["rule_id"] and before["kind"] == after["kind"] == "car_loan"
     assert after["baseline"] != before["baseline"]  # the saved rule is now part of the forecast
+    health = body["health"]
+    assert health["after"]["score"] > health["before"]["score"] and health["change"] > 0  # saving lifts the score
     rules = client.get("/api/rules").json()
     assert [(x["from_alias"], x["percent"], x["status"]) for x in rules] == [("acct_A", 20.0, "active")]
 
@@ -148,6 +155,7 @@ def test_undo_reruns_the_forecast_and_restores_the_original(client):
     r = client.post(f"/api/undo/{first['rule_id']}", json={"scenario": CAR})
     assert r.status_code == 200 and r.json()["status"] == "undone"
     assert r.json()["forecast"]["after"] == first["forecast"]["before"]
+    assert r.json()["health"]["after"] == first["health"]["before"]  # undo restores the old score too
     assert client.post(f"/api/undo/{first['rule_id']}").status_code == 409  # already undone
 
 
@@ -180,3 +188,67 @@ def test_health_warns_when_the_loaded_data_is_not_the_pinned_demo_date(client, m
     assert ok["data_end"] == "2026-11-07" and "warning" not in ok
     monkeypatch.setattr(settings, "demo_end_date", "2026-11-09")
     assert "load_customer" in client.get("/health").json()["warning"]
+
+
+def test_the_pages_gauge_and_the_copilot_agree_on_todays_score(client):
+    gauge = client.get("/api/metrics").json()["overallFinHealth"]
+    result = advise(client)[-1][1]
+    assert result["health"]["before"]["score"] == gauge
+    accept(client, percent=15.0)
+    assert client.get("/api/metrics").json()["overallFinHealth"] > gauge  # accepting moved the gauge
+
+
+# ------------------------------------------------------------------ rewind to a checkpoint
+
+def accept_many(client, percents=(3.0, 5.0, 8.0)):
+    return [accept(client, percent=p).json()["rule_id"] for p in percents]
+
+
+def test_rules_carry_a_title_and_real_account_names_for_the_screen(client):
+    with private_db() as p:
+        p.execute("UPDATE alias_map SET real_name = 'Everyday Checking' WHERE alias = 'acct_A'")
+    accept(client, percent=5.0)
+    [rule] = client.get("/api/rules").json()
+    assert rule["title"] == "Save 5% of each paycheck" and rule["from_label"] == "Everyday Checking"
+    assert rule["created_at"] and rule["status"] == "active"
+
+
+def test_revert_keeps_the_checkpoint_and_everything_before_it(client):
+    first, second, third = accept_many(client)
+    r = client.post("/api/revert", json={"to_rule_id": second, "scenario": CAR})
+    assert r.status_code == 200 and r.json()["reverted"] == [third]
+    status = {x["id"]: x["status"] for x in client.get("/api/rules").json()}
+    assert status == {first: "active", second: "active", third: "undone"}
+
+
+def test_revert_to_the_start_undoes_everything_and_restores_the_original_numbers(client):
+    original = client.post("/api/accept", json={"from_alias": "acct_A", "to_alias": "acct_B", "percent": 3}).json()
+    before = original["forecast"]["before"]
+    accept_many(client, (5.0, 8.0))
+    r = client.post("/api/revert", json={"to_rule_id": None, "scenario": {"kind": "none"}})
+    assert r.status_code == 200 and len(r.json()["reverted"]) == 3
+    assert not [x for x in client.get("/api/rules").json() if x["status"] == "active"]
+    assert r.json()["forecast"]["after"]["baseline"] == before["baseline"]  # the finances are as they were
+    assert r.json()["health"]["after"]["score"] == original["health"]["before"]["score"]
+
+
+def test_revert_returns_the_forecast_and_health_before_and_after(client):
+    _, second, _ = accept_many(client)
+    body = client.post("/api/revert", json={"to_rule_id": second, "scenario": CAR}).json()
+    assert body["forecast"]["after"] != body["forecast"]["before"]
+    assert body["health"]["after"]["score"] < body["health"]["before"]["score"]  # fewer savings rules, lower score
+
+
+def test_revert_to_a_missing_or_undone_change_is_refused_and_changes_nothing(client):
+    first, second = accept_many(client, (3.0, 5.0))
+    client.post(f"/api/undo/{first}", json={})
+    assert client.post("/api/revert", json={"to_rule_id": 9999}).status_code == 404
+    assert client.post("/api/revert", json={"to_rule_id": first}).status_code == 409
+    status = {x["id"]: x["status"] for x in client.get("/api/rules").json()}
+    assert status[second] == "active"
+
+
+def test_reverting_to_the_latest_change_is_a_harmless_no_op(client):
+    *_, last = accept_many(client)
+    body = client.post("/api/revert", json={"to_rule_id": last}).json()
+    assert body["reverted"] == [] and body["forecast"]["after"] == body["forecast"]["before"]

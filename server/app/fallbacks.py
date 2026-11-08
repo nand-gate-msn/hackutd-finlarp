@@ -20,3 +20,18 @@ EXPLAINER = {
 ACTION = {"proposals": []}  # no suggestion is better than an unchecked one
 
 CRITIC = {"ok": True, "issues": []}  # AI check unavailable: the code checks already passed
+
+
+def canned_summary(slots: dict[str, str]) -> str:
+    """The canned explanation, extended with whichever health slots the pack has."""
+    parts = [
+        "Over the next {horizon_days}, about {share_below_zero} of simulated outcomes drop below zero."
+    ]
+    if "health_now" in slots:
+        parts.append("Your overall financial health score is {health_now} out of 100 ({health_status}).")
+    if "health_after" in slots:
+        parts.append("With this decision it would be {health_after}, which is {health_change}.")
+    if "housing_share" in slots:
+        parts.append("Housing takes about {housing_share} of your spending.")
+    parts.append(DISCLAIMER)
+    return " ".join(parts)

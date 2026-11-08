@@ -120,7 +120,14 @@ def _summarize(path_balances: np.ndarray, starting_balance_cents: int) -> dict[s
 	if starting_balance_cents < 0:
 		below_zero[:] = True
 	p10, p50, p90 = np.percentile(ending, [10, 50, 90])
+	# Per-day percentiles across paths: what a fan chart draws (UI only; the band tells the uncertainty).
+	daily = np.percentile(path_balances, [10, 50, 90], axis=0)
 	return {
+		"daily_cents": {
+			"p10": [int(round(float(v))) for v in daily[0]],
+			"p50": [int(round(float(v))) for v in daily[1]],
+			"p90": [int(round(float(v))) for v in daily[2]],
+		},
 		"ending_balance_cents": {
 			"p10": int(round(float(p10))),
 			"p50": int(round(float(p50))),

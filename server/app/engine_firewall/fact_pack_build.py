@@ -23,7 +23,8 @@ from datetime import date, timedelta
 from typing import Any
 
 from ..db import work_db
-from ..factpack_schema import METRIC_FORMULAS, Band, FactPack, ForecastFact, Group, MetricFact
+from ..factpack_schema import METRIC_FORMULAS, Band, FactPack, ForecastFact, Group, HealthFact, MetricFact
+from ..health import HealthResult, health as run_health
 from ..tools import NONE_SCENARIO, ScenarioInput, ToolError, _load, balance_band, simulate
 from . import finmetrics
 
@@ -64,6 +65,15 @@ def _late_band(rate: float) -> Band:
     return "very_high"
 
 
+def _health_fact(result: HealthResult, with_after: bool) -> dict:
+    snap = lambda x: {"score": x.score, "status": x.status, "pillars": x.pillars}  # noqa: E731
+    return {
+        "now": snap(result.before),
+        "after": snap(result.after) if with_after else None,
+        "drivers": [d.model_dump() for d in result.drivers] if with_after else [],
+    }
+
+
 def build_fact_pack(
     *,
     accounts: Iterable[Mapping[str, Any]],
@@ -73,6 +83,7 @@ def build_fact_pack(
     forecast: Mapping[str, Any],
     scenario: Mapping[str, Any] | None = None,
     rules: Iterable[Mapping[str, Any]] = (),
+    health: Mapping[str, Any] | None = None,
 ) -> FactPack:
     """Validate already-aggregated engine outputs into a FactPack.
 
@@ -87,6 +98,7 @@ def build_fact_pack(
         "forecast": dict(forecast),
         "scenario": None if scenario is None else dict(scenario),
         "rules": list(rules),
+        "health": None if health is None else dict(health),
     })
 
 
@@ -133,11 +145,12 @@ def metrics_from_engine(
 def build_from_db(
     scenario: ScenarioInput | Mapping[str, Any] | None = None,
     conn: sqlite3.Connection | None = None,
+    health: HealthResult | None = None,
 ) -> FactPack:
     """Build the pack for the loaded customer, optionally with a what-if scenario applied."""
     if conn is None:
         with work_db() as c:
-            return build_from_db(scenario, c)
+            return build_from_db(scenario, c, health)
     data = _load(conn)
     rows, income, outflow = data["rows"], data["monthly_income_cents"], data["monthly_outflow_cents"]
     last = rows[-1]["date"][:10]
@@ -192,7 +205,9 @@ def build_from_db(
         {"from_alias": r["from_alias"], "to_alias": r["to_alias"], "percent": r["percent"]}
         for r in conn.execute("SELECT from_alias, to_alias, percent FROM rules WHERE status = 'active' ORDER BY id")
     ]
+    health = health or run_health(sc, conn)
     return build_fact_pack(
+        health=_health_fact(health, with_after=sc.kind != "none"),
         accounts=accounts,
         metrics=[m.model_dump() for m in metrics_from_engine(
             rows, data["balance_cents"], data["account"], overdraft_share=month.baseline.share_below_zero)],

@@ -27,6 +27,14 @@ def _next_due_iso(due_day):
     return next_due(due_day, date.today()).isoformat() if due_day else None
 
 
+def _present_rule(rule: dict, labels: dict) -> dict:
+    """A saved rule for the screen: real account names restored from the private db (never sent to a model)."""
+    rule["title"] = f"Save {rule['percent']:g}% of each paycheck"
+    rule["from_label"] = labels.get(rule["from_alias"]) or rule["from_alias"]
+    rule["to_label"] = labels.get(rule["to_alias"]) or rule["to_alias"]
+    return rule
+
+
 def build_overview(days: int = 90) -> dict:
     with work_db() as w, private_db() as p:
         labels = {r["alias"]: r["real_name"] for r in p.execute("SELECT alias, real_name FROM alias_map")}
@@ -79,7 +87,7 @@ def build_overview(days: int = 90) -> dict:
         in_period = {r["obligation_alias"]: r["n"] for r in w.execute(
             "SELECT obligation_alias, COUNT(*) n FROM transactions WHERE obligation_alias IS NOT NULL "
             "AND date>? AND date<=? GROUP BY obligation_alias", (s, e))}
-        rules = [dict(r) for r in w.execute("SELECT * FROM rules ORDER BY id DESC")]
+        rules = [_present_rule(dict(r), labels) for r in w.execute("SELECT * FROM rules ORDER BY id DESC")]
 
     return {
         "source": meta.get("source"), "loaded_at": meta.get("loaded_at"),

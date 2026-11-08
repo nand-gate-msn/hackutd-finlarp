@@ -7,15 +7,16 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from .actions import ActionError, accept_savings_transfer, undo_rule
+from .actions import ActionError, accept_savings_transfer, revert_to, undo_rule
 from .agents import nodes
 from .agents.graph import AGENTS, stream_flow
-from .agents.present import present
+from .agents.present import present, present_health
 from .agents.state import merge_update
 from .config import SERVER_DIR, settings
 from .db import work_db
 from .graph_api import build_graph, build_metrics
 from .overview import build_overview, is_loaded
+from .health import health as run_health
 from .tools import NONE_SCENARIO, ScenarioInput, ToolError, simulate
 
 logging.basicConfig(
@@ -138,16 +139,30 @@ class UndoRequest(BaseModel):
     scenario: ScenarioInput | None = None
 
 
+class RevertRequest(BaseModel):
+    # keep this accepted change and everything before it; null = back to the start (no accepted changes)
+    to_rule_id: int | None = None
+    scenario: ScenarioInput | None = None
+
+
 def _rerun(scenario: ScenarioInput | None, change):
-    """Run `change()` and return its result plus the forecast before and after it."""
+    """Run `change()` and return its result plus the forecast AND overall health before and after it."""
     sc = scenario or NONE_SCENARIO
     try:
-        before = simulate(sc)
+        before, health_before = simulate(sc), run_health(sc)
         result = change()
-        after = simulate(sc)
+        after, health_after = simulate(sc), run_health(sc)
     except ToolError as exc:
         raise HTTPException(503, str(exc)) from exc
-    return {**result, "forecast": {"before": before.model_dump(mode="json"), "after": after.model_dump(mode="json")}}
+    return {
+        **result,
+        "forecast": {"before": before.model_dump(mode="json"), "after": after.model_dump(mode="json")},
+        "health": {
+            "before": present_health(health_before, sc)["after"],
+            "after": present_health(health_after, sc)["after"],
+            "change": round(health_after.after.score - health_before.after.score, 1),
+        },
+    }
 
 
 @app.post("/api/accept")
@@ -163,6 +178,15 @@ def accept(req: AcceptRequest):
 def undo(rule_id: int, req: UndoRequest | None = None):
     try:
         return _rerun(req.scenario if req else None, lambda: undo_rule(rule_id))
+    except ActionError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from exc
+
+
+@app.post("/api/revert")
+def revert(req: RevertRequest):
+    """Rewind finances to a checkpoint: later accepted changes are undone, and the forecast and health re-run."""
+    try:
+        return _rerun(req.scenario, lambda: revert_to(req.to_rule_id))
     except ActionError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
 

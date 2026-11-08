@@ -32,7 +32,7 @@ function Gauge({ score, status }) {
   )
 }
 
-export default function Metrics() {
+export default function Metrics({ refresh = 0 }) {
   const [m, setM] = useState(null)
   const [error, setError] = useState(null)
 
@@ -46,7 +46,7 @@ export default function Metrics() {
       })
       .catch((err) => err.name !== 'AbortError' && setError(err.message))
     return () => controller.abort()
-  }, [])
+  }, [refresh])
 
   if (error) return <p className="state error">Couldn't load metrics: {error}</p>
   if (!m) return <p className="state">Loading metrics…</p>

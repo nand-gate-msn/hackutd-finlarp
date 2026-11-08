@@ -48,6 +48,26 @@ def accept_savings_transfer(from_alias: str, to_alias: str, percent: float) -> d
         return {"rule_id": cur.lastrowid, "amount": amount / 100}
 
 
+def revert_to(rule_id: int | None) -> dict:
+    """Rewind to a checkpoint: keep `rule_id` and everything accepted before it, undo everything accepted after.
+
+    `rule_id=None` rewinds to the start (no accepted changes at all). Like rewinding a chat: the order is the
+    order the changes were accepted in (rule ids only ever grow), so "later" is unambiguous.
+    """
+    with work_db() as w:
+        if rule_id is not None:
+            rule = w.execute("SELECT status FROM rules WHERE id=?", (rule_id,)).fetchone()
+            if not rule:
+                raise ActionError("Change not found", 404)
+            if rule["status"] != "active":
+                raise ActionError("That change is no longer active, so it can't be a checkpoint", 409)
+        later = [r["id"] for r in w.execute(
+            "SELECT id FROM rules WHERE status='active' AND id > ? ORDER BY id DESC", (rule_id or 0,))]
+        now = _now()
+        w.executemany("UPDATE rules SET status='undone', undone_at=? WHERE id=?", [(now, i) for i in later])
+    return {"reverted": later, "kept_through": rule_id}
+
+
 def undo_rule(rule_id: int) -> dict:
     with work_db() as w:
         rule = w.execute("SELECT status FROM rules WHERE id=?", (rule_id,)).fetchone()

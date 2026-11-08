@@ -7,7 +7,9 @@
 Each node reads what it needs and returns ONLY the keys it changes; LangGraph merges them.
 Everything in here is privacy-safe by construction: the fact pack and tool results hold aliases,
 ratios and bands (see factpack_schema / tools). The one free-text field that comes from the
-customer is `user_request`; it is shown to the Planner and never copied into other prompts.
+customer is `user_request`. It is scrubbed of private names/IDs (privacy.scrub_request) and the scrubbed
+copy, `question`, is shown to the Planner (to pick a scenario) and the Explainer (to address the decision
+the customer actually asked about). Action and the Critic never see it.
 """
 
 from __future__ import annotations
@@ -19,6 +21,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..config import settings
 from ..factpack_schema import FactPack, RuleFact
+from ..health import HealthResult, HealthSnapshot
+from ..projection import Preview
 from ..tools import RiskResult, ScenarioInput, SimulationResult
 
 Agent = Literal["planner", "explainer", "action", "critic"]
@@ -42,6 +46,8 @@ class Proposal(_Model):
     move: RuleFact  # from_alias -> to_alias at `percent` of each paycheck (<= 30)
     reason: str = Field(max_length=200)
     outcome: SimulationResult | None = None  # forecast re-run WITH this change, filled by code
+    health: HealthSnapshot | None = None  # overall health if the customer accepts this too, by code
+    preview: Preview | None = None  # UI-ONLY: graph overlay + forecast series; never sent to a model
 
 
 class Verdict(_Model):
@@ -56,9 +62,12 @@ class FlowState(TypedDict, total=False):
     fact_pack: FactPack
 
     # --- Planner
+    question: str  # user_request with private names/IDs removed: the only form that reaches a model
     scenario: ScenarioInput  # what-if the customer asked about
     simulation: SimulationResult  # tool: forecast with and without the scenario
     risk: RiskResult  # tool: overdraft / payment-too-big / thin-buffer flags
+    health: HealthResult  # tool: overall financial health now vs after the scenario
+    preview: Preview  # UI-ONLY: projected graph node + forecast series for the what-if
 
     # --- Explainer, Action
     explanation: Explanation

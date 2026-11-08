@@ -23,6 +23,8 @@ from app import actions, ingest  # noqa: E402
 from app.agents import graph, nodes  # noqa: E402
 from app.config import settings  # noqa: E402
 from app.datagen import PERSONAS, generate  # noqa: E402
+from app.engine_firewall.overallFinHealth import LABELS  # noqa: E402
+from app.health import health as run_health  # noqa: E402
 from app.tools import NONE_SCENARIO, simulate  # noqa: E402
 
 DEMO_QUESTIONS = [
@@ -51,6 +53,11 @@ def grade(state: dict, seconds: float) -> list[str]:
         problems.append("a word is repeated (e.g. a unit added after a slot that already has one)")
     if re.search(r"\b(thirty|sixty|ninety|twice|half|hundred|thousand)\b", text, re.I):
         problems.append("a number was written as a word")
+    slots = state["fact_pack"].slots()
+    if slots["health_now"] not in text:
+        problems.append("the explanation never states the health score")
+    if "health_after" in slots and slots["health_after"] not in text:
+        problems.append("the explanation never states the health score after the decision")
     if state["fallbacks"]:
         problems.append(f"canned answer used for: {', '.join(state['fallbacks'])}")
     if not state["verdict"].ok:
@@ -75,10 +82,13 @@ async def rehearse(questions: list[str], quick: bool) -> int:
             print(f"  {seconds:4.1f}s | scenario {state['scenario'].kind} | risk {state['risk'].overall} | "
                   f"overdraft chance {pct(f.baseline.share_below_zero)} -> {pct(f.scenario.share_below_zero)} | "
                   f"retries {state['retries']}")
+            h = state["health"]
+            drivers = ", ".join(f"{LABELS[d.indicator]} {d.effect}" for d in h.drivers) or "no change"
+            print(f"  health {h.before.score:g} ({h.before.status}) -> {h.after.score:g} ({h.after.status}) [{drivers}]")
             print("  " + re.sub(r"\s+", " ", state["explanation"].text))
             for p in state["proposals"]:
                 print(f"  * move {p.move.percent:g}% {p.move.from_alias}->{p.move.to_alias}: {p.reason} "
-                      f"(chance {pct(p.outcome.scenario.share_below_zero)})")
+                      f"(overdraft chance {pct(p.outcome.scenario.share_below_zero)}, health {p.health.score:g})")
             problems = grade(state, seconds)
             flagged += bool(problems)
             print("  " + ("OK" if not problems else "CHECK: " + "; ".join(problems)))
@@ -90,14 +100,15 @@ async def rehearse(questions: list[str], quick: bool) -> int:
         state = await graph.run_flow(questions[0], deps)
         if state["proposals"]:
             p = state["proposals"][0]
-            before = simulate(state["scenario"])
+            before, h0 = simulate(state["scenario"]), run_health(state["scenario"])
             rule = actions.accept_savings_transfer(p.move.from_alias, p.move.to_alias, p.move.percent)
-            after = simulate(state["scenario"])
+            after, h1 = simulate(state["scenario"]), run_health(state["scenario"])
             actions.undo_rule(rule["rule_id"])
-            restored = simulate(state["scenario"])
-            ok = restored == before and after != before
-            print(f"  chance {pct(before.scenario.share_below_zero)} -> {pct(after.scenario.share_below_zero)} "
-                  f"-> undone {pct(restored.scenario.share_below_zero)}  {'OK' if ok else 'CHECK: undo did not restore'}")
+            restored, h2 = simulate(state["scenario"]), run_health(state["scenario"])
+            ok = restored == before and h2 == h0 and h1.after.score > h0.after.score  # accepting must lift health; undo must restore both
+            print(f"  overdraft chance {pct(before.scenario.share_below_zero)} -> {pct(after.scenario.share_below_zero)} "
+                  f"-> undone {pct(restored.scenario.share_below_zero)} | health {h0.after.score:g} -> "
+                  f"{h1.after.score:g} -> undone {h2.after.score:g}  {'OK' if ok else 'CHECK: undo did not restore'}")
             flagged += not ok
         else:
             print("  CHECK: no proposals to accept")

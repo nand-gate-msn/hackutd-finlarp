@@ -8,6 +8,7 @@ returned from here is sent to a model.
 from __future__ import annotations
 
 from ..db import private_db
+from ..engine_firewall.overallFinHealth import LABELS
 from .state import FlowState
 
 
@@ -22,11 +23,24 @@ def restore_labels(aliases: set[str]) -> dict[str, str]:
     return {a: names.get(a, a) for a in aliases}
 
 
+def present_health(h, scenario=None) -> dict:
+    """Health before/after for the screen (display labels instead of engine names)."""
+    return {
+        "before": h.before.model_dump(mode="json"),
+        "after": h.after.model_dump(mode="json"),
+        "change": h.change,
+        "drivers": [{"label": LABELS[d.indicator], "effect": d.effect, "points": d.points} for d in h.drivers],
+        "what_if": scenario is not None and scenario.kind != "none",
+    }
+
+
 def present(state: FlowState) -> dict:
     proposals = state.get("proposals", [])
     labels = restore_labels({a for p in proposals for a in (p.move.from_alias, p.move.to_alias)})
-    simulation = state["simulation"]
+    simulation, health = state["simulation"], state["health"]
     return {
+        "health": present_health(health, state.get("scenario")),
+        "preview": state["preview"].model_dump(mode="json") if state.get("preview") else None,
         "scenario": state["scenario"].model_dump(mode="json"),
         "forecast": simulation.model_dump(mode="json"),
         "risk": state["risk"].model_dump(mode="json"),
@@ -43,6 +57,11 @@ def present(state: FlowState) -> dict:
                 "percent": p.move.percent,
                 "reason": p.reason,
                 "forecast": p.outcome.model_dump(mode="json") if p.outcome else None,
+                "preview": p.preview.model_dump(mode="json") if p.preview else None,
+                "health": None if p.health is None else {
+                    "score": p.health.score, "status": p.health.status,
+                    "change_vs_scenario": round(p.health.score - health.after.score, 1),
+                },
             }
             for p in proposals
         ],

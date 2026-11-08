@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
+from .engine_firewall.overallFinHealth import LABELS as INDICATOR_LABELS
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 Band = Literal["very_low", "low", "moderate", "high", "very_high"]
@@ -21,6 +22,13 @@ Group = Literal[
     "Housing", "Food", "Transport", "Discretionary", "Debt", "Health", "Education", "Other"
 ]
 Ratio = Annotated[float, Field(ge=0.0, le=1.0)]
+Score = Annotated[float, Field(ge=0.0, le=100.0)]
+HealthStatus = Literal["Healthy", "Okay", "Needs attention", "At risk"]
+Pillar = Literal["Spend", "Save", "Borrow", "Plan"]
+IndicatorKey = Literal[
+    "savings_rate", "cash_runway_months", "housing_debt_load", "overdraft_probability_30d",
+    "income_stability", "spending_volatility", "recurring_discretionary_load",
+]
 Alias = Annotated[str, StringConstraints(pattern=r"^(acct|merch|bill|loan)_[A-Za-z0-9]+$")]
 
 MetricKey = Literal[
@@ -43,6 +51,15 @@ METRIC_FORMULAS: dict[str, str] = {
     "spending_volatility": "coefficient of variation of weekly variable spending",
     "recurring_discretionary_load": "recurring discretionary payments / income",
 }
+
+
+def _points(n: int) -> str:
+    return f"{n} point" if n == 1 else f"{n} points"
+
+
+def round_half_up(x: float) -> int:
+    """78.5 -> 79, like the browser's Math.round (Python's round() gives 78)."""
+    return int(x + 0.5)
 
 
 # Slot names the Explainer sees. No digits in a name, or the model copies them into prose ("30-day"),
@@ -108,6 +125,26 @@ class RuleFact(_Model):
     percent: Annotated[float, Field(gt=0.0, le=30.0)]
 
 
+class HealthSnapshotFact(_Model):
+    score: Score  # overall financial health, 0-100
+    status: HealthStatus
+    pillars: dict[Pillar, Score | None]
+
+
+class HealthDriverFact(_Model):
+    indicator: IndicatorKey
+    effect: Literal["better", "worse"]
+    points: Annotated[float, Field(ge=0.0, le=100.0)]  # contribution to the change in the overall score
+
+
+class HealthFact(_Model):
+    """Overall health now, and (when a decision is being explored) after it."""
+
+    now: HealthSnapshotFact
+    after: HealthSnapshotFact | None = None
+    drivers: list[HealthDriverFact] = []  # what moved the score most, biggest first
+
+
 class FactPack(_Model):
     schema_version: Literal[1] = 1
     accounts: list[AccountFact]
@@ -117,6 +154,7 @@ class FactPack(_Model):
     forecast: ForecastFact
     scenario: ScenarioFact | None = None
     rules: list[RuleFact] = []
+    health: HealthFact | None = None
 
     def slots(self) -> dict[str, str]:
         """Numbers the Explainer may reference as {slot}; server fills them.
@@ -130,6 +168,18 @@ class FactPack(_Model):
             # runway is in days; every other metric is a 0-1 ratio and reads best as a percentage
             slot = SLOT_NAMES.get(m.key, m.key)
             s[slot] = f"{m.value:.0f} days" if m.key == "cash_runway" else f"{m.value:.0%}"
+        if self.health:
+            h = self.health
+            s["health_now"] = str(round_half_up(h.now.score))
+            s["health_status"] = h.now.status.lower()
+            if h.after:
+                s["health_after"] = str(round_half_up(h.after.score))
+                s["health_after_status"] = h.after.status.lower()
+                delta = round_half_up(h.after.score) - round_half_up(h.now.score)  # what the reader sees
+                s["health_change"] = "unchanged" if delta == 0 else f"{_points(abs(delta))} {'higher' if delta > 0 else 'lower'}"
+            for slot, d in zip(("main_driver", "second_driver"), h.drivers):
+                s[slot] = INDICATOR_LABELS[d.indicator].lower()
+                s[f"{slot}_effect"] = f"{'up' if d.effect == 'better' else 'down'} {_points(max(1, round(d.points)))}"
         s["share_below_zero"] = f"{self.forecast.share_below_zero:.0%}"
         s["horizon_days"] = f"{self.forecast.horizon_days} days"
         if self.scenario and self.scenario.kind != "none":

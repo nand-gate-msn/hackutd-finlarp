@@ -9,7 +9,9 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 from .db import private_db, rebuild_graph, work_db
-from .engine_firewall.overallFinHealth import compute_overall_fin_health
+from .health import current_report
+from .projection import account_node, rule_monthly_cents
+from .tools import MONTH_DAYS
 
 # Map a deposit's label to a readable income source node.
 _INCOME_NAMES = {"paycheck": "Paycheck", "interest": "Interest"}
@@ -18,6 +20,30 @@ _INCOME_NAMES = {"paycheck": "Paycheck", "interest": "Interest"}
 def _income_key(label: str | None) -> tuple[str, str]:
     label = (label or "deposit").lower()
     return f"income:{label}", _INCOME_NAMES.get(label, label.replace("_", " ").title())
+
+
+def _add_accepted_rules(out_nodes: dict, agg: dict, days: int) -> None:
+    """Accepted savings rules are part of the forecast and health score, so the graph shows them too:
+    a dashed rule node between the two accounts, sized to what it moves over this window."""
+    with work_db() as w:
+        rules = [dict(r) for r in w.execute("SELECT * FROM rules WHERE status = 'active' ORDER BY id")]
+        if not rules:
+            return
+        monthly = {r["id"]: rule_monthly_cents(w, r["percent"]) for r in rules}
+    for r in rules:
+        node_id = f"rule:{r['id']}"
+        cents = round(monthly[r["id"]] * days / MONTH_DAYS)
+        out_nodes[node_id] = {
+            "id": node_id, "type": "rule", "label": f"Save {r['percent']:g}% of each paycheck", "alias": None,
+            "account_type": None, "group": None, "category": None, "due_day": None, "bill_cents": None,
+            "in_cents": cents, "out_cents": cents, "tag": "proposed", "accepted": True, "rule_id": r["id"],
+        }
+        for src, dst in ((account_node(r["from_alias"]), node_id), (node_id, account_node(r["to_alias"]))):
+            if src not in out_nodes or dst not in out_nodes:
+                continue  # an account with no activity in this window is not drawn
+            agg[(src, dst, "transfers", "proposed")] = {
+                "source": src, "target": dst, "type": "transfers", "tag": "proposed", "amount_cents": cents, "count": 0,
+            }
 
 
 def build_graph(days: int = 90, include_coverage: bool = False) -> dict:
@@ -77,6 +103,7 @@ def build_graph(days: int = 90, include_coverage: bool = False) -> dict:
         out_nodes[src]["out_cents"] += cents
         out_nodes[dst]["in_cents"] += cents
 
+    _add_accepted_rules(out_nodes, agg, days)
     edge_list = sorted(agg.values(), key=lambda a: -a["amount_cents"])
     return {
         "period": {"start": start, "end": end.isoformat(), "days": days},
@@ -90,7 +117,7 @@ def build_metrics() -> dict:
     with work_db() as w:
         transactions = w.execute("SELECT * FROM transactions ORDER BY date,id").fetchall()
         accounts = w.execute("SELECT * FROM accounts ORDER BY alias").fetchall()
-    report = compute_overall_fin_health(transactions, accounts)
+    report = current_report()  # same definition the agents use: accepted rules applied, Monte Carlo overdraft
     cash = sum(a["balance_cents"] for a in accounts if a["type"] in ("Checking", "Savings"))
     # Income / spend over the same 90-day window the rest of the UI defaults to.
     last = max(t["date"] for t in transactions)[:10]

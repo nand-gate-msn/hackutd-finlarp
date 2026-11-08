@@ -97,6 +97,9 @@ export default function App() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [healthTick, setHealthTick] = useState(0) // bumps when a decision changes the score
+  const [projection, setProjection] = useState(null) // what the copilot's answer adds to the graph
+  const [rules, setRules] = useState([]) // accepted changes, newest first
 
   useEffect(() => {
     const controller = new AbortController()
@@ -113,7 +116,18 @@ export default function App() {
     return () => controller.abort()
   }, [])
 
+  // The accepted changes live on the server (they survive a reload); refetch whenever a decision changes them.
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/rules', { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((list) => setRules(list.filter((r) => r.status === 'active')))
+      .catch(() => {})
+    return () => controller.abort()
+  }, [healthTick])
+
   return (
+    <div className="shell">
     <main className="app">
       <header className="page-head">
         <h1>Cash Flow Copilot</h1>
@@ -137,9 +151,8 @@ export default function App() {
             <Stat label="Bills" value={data.totals.bills} tone="bad" />
           </section>
 
-          <Advisor />
-          <Metrics />
-          <GraphView />
+          <GraphView projection={projection} refresh={healthTick} />
+          <Metrics refresh={healthTick} />
 
           <h2 className="section-title">Accounts</h2>
           {data.accounts.length === 0 ? (
@@ -154,5 +167,9 @@ export default function App() {
         </>
       )}
     </main>
+    <aside className="sidebar">
+      <Advisor rules={rules} onDecision={() => setHealthTick((t) => t + 1)} onProject={setProjection} />
+    </aside>
+    </div>
   )
 }
