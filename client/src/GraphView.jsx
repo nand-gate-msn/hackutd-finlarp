@@ -18,7 +18,7 @@ const WINDOWS = [30, 90, 180, 365]
 const ctx = typeof document === 'undefined' ? null : document.createElement('canvas').getContext('2d')
 function measure(text, size) {
   if (!ctx) return approxMeasure(text, size)
-  ctx.font = `600 ${size}px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`
+  ctx.font = `600 ${size}px ${getComputedStyle(document.documentElement).fontFamily}`
   return ctx.measureText(text).width
 }
 
@@ -142,7 +142,7 @@ function Details({ graph, id, onClose, flags = [], input, choice, onChoice, onDe
     <aside className="gdetail">
       <button className="gclose" onClick={onClose} aria-label="Close details">×</button>
       <span className="gnode-kind">{ghost ? 'Projected' : TYPE_LABEL[node.type]}</span>
-      <h4>{ghost ? 'This decision' : titleCase(node.label)}</h4>
+      <h3>{ghost ? 'This decision' : titleCase(node.label)}</h3>
       {flags.map((f) => (
         <Problem key={f.id} f={f} input={input} choice={choice} onChoice={onChoice} onDecision={onDecision} />
       ))}
@@ -153,13 +153,13 @@ function Details({ graph, id, onClose, flags = [], input, choice, onChoice, onDe
       )}
       {incoming.length > 0 && (
         <>
-          <h5>Money in · {money.format(node.in_cents / 100)}</h5>
+          <h4>Money in · {money.format(node.in_cents / 100)}</h4>
           <ul>{incoming.map((e) => row(e, e.source))}</ul>
         </>
       )}
       {outgoing.length > 0 && (
         <>
-          <h5>Money out · {money.format(node.out_cents / 100)}</h5>
+          <h4>Money out · {money.format(node.out_cents / 100)}</h4>
           <ul>{outgoing.map((e) => row(e, e.target))}</ul>
         </>
       )}

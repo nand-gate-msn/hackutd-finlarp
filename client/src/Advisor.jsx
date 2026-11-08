@@ -139,7 +139,7 @@ function Result({ r, rules, choice, onProject, onAccepted }) {
         <p className="muted">No safe changes to suggest right now.</p>
       ) : (
         <section className="suggestions" aria-label="Suggested changes">
-          <h4>Suggested changes</h4>
+          <h3>Suggested changes</h3>
           {anyAccepted && (
             <p className="muted small">
               {indexed.length - open.length} of {indexed.length} accepted. It is listed under “Changes accepted”.
