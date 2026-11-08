@@ -1,0 +1,153 @@
+import { useEffect, useState } from 'react'
+import './App.css'
+
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+const fmtDate = (d) => (d ? new Date(d + 'T00:00:00').toLocaleDateString() : '—')
+const titleCase = (s) => (s ? s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : '—')
+
+function Stat({ label, value, tone }) {
+  return (
+    <div className="stat">
+      <span className="stat-label">{label}</span>
+      <span className={`stat-value ${tone ?? ''}`}>{money.format(value)}</span>
+    </div>
+  )
+}
+
+function Section({ title, children }) {
+  return (
+    <div className="section">
+      <h4>{title}</h4>
+      {children}
+    </div>
+  )
+}
+
+function AccountCard({ account }) {
+  const { purchases, bills, deposits, spending_by_category: cats } = account
+  const maxCat = Math.max(...Object.values(cats), 1)
+
+  return (
+    <article className="card">
+      <header className="card-head">
+        <div>
+          <h3>{account.alias}</h3>
+          <span className="badge">{titleCase(account.type)}</span>
+        </div>
+        <span className="balance">{money.format(account.balance)}</span>
+      </header>
+
+      <div className="mini-stats">
+        <span>{deposits.count} deposits · {money.format(deposits.total)}</span>
+        <span>{purchases.count} purchases · {money.format(purchases.total)}</span>
+        <span>{bills.count} bills · {money.format(bills.total)}</span>
+      </div>
+
+      {Object.keys(cats).length > 0 && (
+        <Section title="Spending by category">
+          {Object.entries(cats).map(([name, total]) => (
+            <div className="bar-row" key={name}>
+              <span className="bar-name">{name}</span>
+              <div className="bar-track">
+                <div className="bar-fill" style={{ width: `${(total / maxCat) * 100}%` }} />
+              </div>
+              <span className="bar-amt">{money.format(total)}</span>
+            </div>
+          ))}
+        </Section>
+      )}
+
+      {bills.items.length > 0 && (
+        <Section title="Bills">
+          <table>
+            <tbody>
+              {bills.items.map((b, i) => (
+                <tr key={i}>
+                  <td>{b.payee}</td>
+                  <td className="muted">{titleCase(b.status)}</td>
+                  <td className="muted">{fmtDate(b.due)}</td>
+                  <td className="num">{money.format(b.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      )}
+
+      {purchases.recent.length > 0 && (
+        <Section title="Recent purchases">
+          <table>
+            <tbody>
+              {purchases.recent.map((p, i) => (
+                <tr key={i}>
+                  <td>{p.description}</td>
+                  <td className="muted">{fmtDate(p.date)}</td>
+                  <td className="num">{money.format(p.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      )}
+    </article>
+  )
+}
+
+export default function App() {
+  const [data, setData] = useState(null)
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch('/api/overview', { signal: controller.signal })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(body.detail ?? `Request failed (${res.status})`)
+        setData(body)
+      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') setError(err.message)
+      })
+      .finally(() => setLoading(false))
+    return () => controller.abort()
+  }, [])
+
+  return (
+    <main className="app">
+      <header className="page-head">
+        <h1>Cash Flow Copilot</h1>
+        <p>
+          {data
+            ? `Last ${data.period.days} days (to ${fmtDate(data.period.end)}) · source: ${data.source}. `
+            : ''}
+          Account IDs and numbers stay on the server; the AI only sees anonymous summaries.
+        </p>
+      </header>
+
+      {loading && <p className="state">Loading accounts…</p>}
+      {error && <p className="state error">Couldn't load data: {error}</p>}
+
+      {data && (
+        <>
+          <section className="stats">
+            <Stat label="Total balance" value={data.totals.balance} />
+            <Stat label="Deposits" value={data.totals.deposits} tone="good" />
+            <Stat label="Purchases" value={data.totals.purchases} tone="bad" />
+            <Stat label="Bills" value={data.totals.bills} tone="bad" />
+          </section>
+
+          {data.accounts.length === 0 ? (
+            <p className="state">This customer has no accounts yet.</p>
+          ) : (
+            <section className="grid">
+              {data.accounts.map((a) => (
+                <AccountCard key={a.alias} account={a} />
+              ))}
+            </section>
+          )}
+        </>
+      )}
+    </main>
+  )
+}
