@@ -50,7 +50,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .seg button { padding: 6px 14px; border: 0; background: transparent; color: var(--ink-muted); font: inherit; font-size: var(--text-ui); cursor: pointer; }
 .seg button + button { border-left: 1px solid var(--track); }
 .seg button.on { background: var(--accent); color: var(--on-solid); }
-.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* tones: t-good / t-ok / t-warn / t-bad / t-na */
 .t-good { --tone: var(--positive); --tone-text: var(--positive); } .t-ok { --tone: var(--caution); --tone-text: var(--ok-text); } .t-warn { --tone: var(--warning); --tone-text: var(--warn-text); } .t-bad { --tone: var(--negative); --tone-text: var(--negative); } .t-na { --tone: var(--ink-muted); --tone-text: var(--ink-muted); }
@@ -70,7 +70,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .pillar-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .pillar .bar-track { margin-bottom: 5px; }
 .pill { font-size: var(--text-sm); font-weight: 700; color: var(--tone-text); }
-.bar-fill { transition: width 0.4s; }
+.bar-fill { transition: transform var(--duration-slow) var(--ease-standard); }
 .bar-track { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; }
 
 .flow { display: flex; flex-direction: column; gap: 7px; padding-left: 24px; border-left: 1px solid var(--track); font-size: var(--text-ui); }
@@ -437,3 +437,56 @@ h1, h2, h3 { text-wrap: balance; }
 .problem.sev-watch .problem-sev { color: var(--ok-text); background: var(--caution-subtle); }
 .gflag circle { fill: var(--negative); }
 .accepted-icon { background: var(--positive-subtle); color: var(--positive); }
+
+/* Preference foundations precede every new interaction. */
+.bar-fill { width: 100%; transform-origin: left center; }
+.g-fill { transition: stroke-dasharray var(--duration-slow) var(--ease-standard); }
+.btn, .chip, .pick, .seg button, .gctl button, .see-others, .accepted-bar,
+.gforecast, .modal-close, .gclose, .gflag-item, .gflags-head, .flegend {
+  transition-property: transform, box-shadow, border-color, background-color, color, opacity;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-standard);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:hover:not(:disabled) { filter: none; box-shadow: inset 0 0 0 999px var(--state-hover); }
+:is(.btn, .chip, .pick, .seg button, .gctl button, .see-others, .accepted-bar, .gforecast,
+.modal-close, .gclose, .gflag-item, .gflags-head, .flegend):active:not(:disabled) {
+  transform: scale(.98);
+  box-shadow: inset 0 0 0 999px var(--state-pressed);
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* A solid buffer keeps the accent outline distinguishable over bright graph marks. */
+:is(.seg button, .gctl button, .gforecast, .gclose):focus-visible { box-shadow: 0 0 0 4px var(--surface); }
+.ask > .btn { min-inline-size: 7.5rem; }
+@media (pointer: coarse) {
+  .btn, .chip, .pick, .seg button, .gctl button, .gforecast, .modal-close, .gclose, .see-others { min-height: var(--touch-min); }
+  .gctl button, .modal-close, .gclose { min-width: var(--touch-min); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; }
+  :is(.btn, .chip, .pick, .seg button, .gctl button, .see-others, .accepted-bar, .gforecast,
+  .modal-close, .gclose, .gflag-item, .gflags-head, .flegend):active { transform: none !important; }
+  .bar-fill, .g-fill { transition: none; }
+  .presence, .modal-dialog, .modal-backdrop, .seg-thumb, .sidebar {
+    transition-property: opacity !important; transition-duration: 100ms !important;
+  }
+  .presence, .modal-dialog { transform: none !important; filter: none !important; }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
+  :is(.sidebar, .seg, .graph-toolbar, .gdetail, .mobile-sheet) {
+    background: var(--surface) !important;
+    -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+    border: 1px solid var(--line-control) !important;
+  }
+  .ambient { display: none !important; }
+  .modal-backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .card, .stat, .panel, .badge, .chip, .indicator { box-shadow: inset 0 0 0 1px var(--line-control); }
+}
+@media (forced-colors: active) {
+  button, input, .card, .panel, .gcanvas, .modal-dialog { border: 1px solid CanvasText !important; }
+  :focus-visible { outline-color: Highlight !important; }
+  .seg-thumb { border: 2px solid Highlight; }
+  .g-fill, .gedge .gl, .gn circle { stroke: CanvasText; }
+}

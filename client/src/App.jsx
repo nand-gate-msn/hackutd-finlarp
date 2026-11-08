@@ -49,7 +49,7 @@ function AccountCard({ account }) {
             <div className="bar-row" key={name}>
               <span className="bar-name" title={name}>{name}</span>
               <div className="bar-track">
-                <div className="bar-fill" style={{ width: `${(total / maxCat) * 100}%` }} />
+                <div className="bar-fill" style={{ transform: `scaleX(${total / maxCat})` }} />
               </div>
               <span className="bar-amt">{money.format(total)}</span>
             </div>

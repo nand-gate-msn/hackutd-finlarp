@@ -78,7 +78,7 @@ export default function Metrics({ refresh = 0 }) {
                 <b>{name}</b>
                 <span className={`pill t-${tone(p.score)}`}>{p.score ?? '—'}</span>
               </div>
-              <div className="bar-track"><div className={`bar-fill f-${tone(p.score)}`} style={{ width: `${p.score ?? 0}%` }} /></div>
+              <div className="bar-track"><div className={`bar-fill f-${tone(p.score)}`} style={{ transform: `scaleX(${(p.score ?? 0) / 100})` }} /></div>
               <span className="muted small">{PILLAR_HINT[name]} · {Math.round(p.weight * 100)}% weight</span>
             </div>
           ))}
@@ -99,7 +99,7 @@ export default function Metrics({ refresh = 0 }) {
           <div className={`indicator t-${tone(i.score)}`} key={key} title={i.note}>
             <span className="stat-label">{i.label}</span>
             <b>{i.display}</b>
-            <div className="bar-track"><div className={`bar-fill f-${tone(i.score)}`} style={{ width: `${i.score}%` }} /></div>
+            <div className="bar-track"><div className={`bar-fill f-${tone(i.score)}`} style={{ transform: `scaleX(${i.score / 100})` }} /></div>
           </div>
         ))}
       </div>
