@@ -490,3 +490,19 @@ h1, h2, h3 { text-wrap: balance; }
   .seg-thumb { border: 2px solid Highlight; }
   .g-fill, .gedge .gl, .gn circle { stroke: CanvasText; }
 }
+
+/* One retained state machine, symmetric paths, live transitions on interruption. */
+.presence { opacity: 1; transform: translateY(0) scale(1); transition: opacity var(--duration-base) var(--ease-standard), transform var(--duration-slow) var(--ease-standard); }
+.presence[data-state="closed"] { opacity: 0; transform: translateY(8px) scale(.98); pointer-events: none; }
+.modal-host { display: contents; }
+.modal[data-state="closed"] { pointer-events: none; }
+.modal-backdrop { opacity: 1; transition: opacity var(--duration-base) var(--ease-standard); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.modal-dialog { transform: scale(1); opacity: 1; border-radius: var(--radius-md); box-shadow: var(--elevation-2); transition: opacity var(--duration-base) var(--ease-standard), transform var(--duration-slow) var(--ease-standard); }
+.modal[data-state="closed"] .modal-dialog { opacity: 0; transform: scale(.96); }
+.modal[data-state="closed"] .modal-backdrop { opacity: 0; }
+.gdetail { transform: translateX(0) scale(1); }
+.gdetail[data-state="closed"] { transform: translateX(16px) scale(.98); }
+.gflags[data-state="closed"] { transform: translateX(-16px) scale(.98); }
+@media (prefers-reduced-motion: reduce) {
+  .presence[data-state="closed"], .modal[data-state="closed"] .modal-dialog { transform: none !important; }
+}

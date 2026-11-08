@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { post, when } from './api'
 import Modal from './Modal'
+import Presence from './Presence'
 import { money } from './format'
 
 const score = (x) => Math.round(x)
@@ -15,6 +16,7 @@ export default function AcceptedChanges({ rules, scenario, onChanged }) {
   const latest = rules[0]
   return (
     <>
+      <Presence show className="accepted-presence">
       <button
         type="button"
         className={`accepted-bar ${latest ? '' : 'empty'}`}
@@ -29,9 +31,12 @@ export default function AcceptedChanges({ rules, scenario, onChanged }) {
         </span>
         {latest && <span className="accepted-chevron" aria-hidden="true">›</span>}
       </button>
+      </Presence>
+      <Presence show={open && rules.length > 0} className="modal-host">
       {open && rules.length > 0 && (
         <HistoryModal rules={rules} scenario={scenario} onChanged={onChanged} onClose={() => setOpen(false)} />
       )}
+      </Presence>
     </>
   )
 }
@@ -78,8 +83,8 @@ function HistoryModal({ rules, scenario, onChanged, onClose }) {
         that change and undoes everything accepted later.
       </p>
       <div className="sr-only" aria-live="polite">{message}</div>
-      {message && <p className="notice ok">{message}</p>}
-      {error && <p className="notice bad">{error}</p>}
+      <Presence show={Boolean(message)}>{message && <p className="notice ok">{message}</p>}</Presence>
+      <Presence show={Boolean(error)}>{error && <p className="notice bad">{error}</p>}</Presence>
 
       <ol className="timeline">
         {rules.map((rule, i) => {
@@ -106,6 +111,7 @@ function HistoryModal({ rules, scenario, onChanged, onClose }) {
                     </button>
                   )}
                 </div>
+                <Presence show={asking}>
                 {asking && (
                   <div className="confirm" role="alert">
                     <p>
@@ -119,6 +125,7 @@ function HistoryModal({ rules, scenario, onChanged, onClose }) {
                     <button className="btn ghost sm" disabled={busy} onClick={() => setConfirm(null)}>Cancel</button>
                   </div>
                 )}
+                </Presence>
               </div>
             </li>
           )
@@ -131,6 +138,7 @@ function HistoryModal({ rules, scenario, onChanged, onClose }) {
             <div className="tl-actions">
               <button className="btn ghost sm" disabled={busy} onClick={() => setConfirm({ to: null })}>Revert to start</button>
             </div>
+            <Presence show={confirm?.to === null}>
             {confirm?.to === null && (
               <div className="confirm" role="alert">
                 <p>This undoes all {rules.length} accepted change{rules.length === 1 ? '' : 's'}.</p>
@@ -138,6 +146,7 @@ function HistoryModal({ rules, scenario, onChanged, onClose }) {
                 <button className="btn ghost sm" disabled={busy} onClick={() => setConfirm(null)}>Cancel</button>
               </div>
             )}
+            </Presence>
           </div>
         </li>
       </ol>

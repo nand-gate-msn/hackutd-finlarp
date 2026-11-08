@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import ForecastChart from './ForecastChart'
 import Modal from './Modal'
+import Presence from './Presence'
 import { applyGhosts, approxMeasure, FONT, LABEL_GAP, LABEL_H, layoutGraph, PILL_H, refresh, settle, wake } from './graphLayout.js'
 import { compact, money, titleCase } from './format'
 import { post } from './api'
@@ -139,7 +140,7 @@ function Details({ graph, id, onClose, flags = [], input, choice, onChoice, onDe
     </li>
   )
   return (
-    <aside className="gdetail">
+    <aside className="details-content">
       <button className="gclose" onClick={onClose} aria-label="Close details">×</button>
       <span className="gnode-kind">{ghost ? 'Projected' : TYPE_LABEL[node.type]}</span>
       <h3>{ghost ? 'This decision' : titleCase(node.label)}</h3>
@@ -470,20 +471,22 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
           Forecast
         </button>
       )}
-      {open && <ForecastModal layers={layers} start={projection?.scenario?.series?.start} onClose={() => setForecastOpen(false)} />}
+      <Presence show={open} className="modal-host">
+        {open && <ForecastModal layers={layers} start={projection?.scenario?.series?.start} onClose={() => setForecastOpen(false)} />}
+      </Presence>
       <div className="gctl" role="group" aria-label="Graph view controls">
         <button onClick={() => zoomBy(1.25)} aria-label="Zoom in">+</button>
         <button onClick={() => zoomBy(0.8)} aria-label="Zoom out">−</button>
         <button onClick={fit} aria-label="Fit to screen">⤢</button>
       </div>
       <p className="ghint">Drag a node to pull its neighbours · scroll to zoom · drag the background to pan · hover to trace</p>
-      {flagList.length > 0 && (
-        <aside className="gflags" aria-label="Problems found">
+      <Presence show={flagList.length > 0} className="gflags" as="aside" aria-label="Problems found">
           <button className="gflags-head" aria-expanded={flagsOpen} onClick={() => setFlagsOpen((v) => !v)}>
             <span className="gflags-dot" aria-hidden="true">!</span>
             Needs attention <em>{flagList.length}</em>
             <span className="gflags-chev" aria-hidden="true">{flagsOpen ? '▾' : '▸'}</span>
           </button>
+          <Presence show={flagsOpen}>
           {flagsOpen && (
             <ul>
               {flagList.map((f) => (
@@ -496,8 +499,9 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
               ))}
             </ul>
           )}
-        </aside>
-      )}
+          </Presence>
+      </Presence>
+      <Presence show={Boolean(selected)} className="gdetail" style={{ transformOrigin: selected && model.byId.has(selected) ? `${model.byId.get(selected).x * view.k + view.x - size.w + 342}px ${model.byId.get(selected).y * view.k + view.y}px` : undefined }}>
       {selected && (
         <Details
           graph={graph}
@@ -510,6 +514,7 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
           onDecision={onDecision}
         />
       )}
+      </Presence>
     </div>
   )
 }

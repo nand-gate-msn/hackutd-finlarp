@@ -3,6 +3,7 @@ import { post } from './api'
 import AcceptedChanges from './AcceptedChanges'
 import { pct, pts, ruleKey, score } from './format'
 import { Proposal } from './Suggestions'
+import Presence from './Presence'
 
 // The four agents, in order, with what the customer sees while each one works.
 const STEPS = [
@@ -293,6 +294,7 @@ export default function Advisor({ rules = [], choice = null, onDecision, onProje
 
         {(running || Object.keys(steps).length > 0) && !result && !error && <Progress steps={steps} />}
         {error && <p className="state error">{error}</p>}
+        <Presence show={Boolean(notice)} className="notice-presence">
         {notice && (
           <div className="notice ok" role="status">
             <div>
@@ -305,9 +307,12 @@ export default function Advisor({ rules = [], choice = null, onDecision, onProje
             </div>
           </div>
         )}
+        </Presence>
+        <Presence show={Boolean(result)} className="result-presence">
         {result && (
           <Result key={result.received} r={result} rules={rules} choice={choice} onProject={onProject} onAccepted={accepted} />
         )}
+        </Presence>
       </div>
 
       <footer className="copilot-foot">

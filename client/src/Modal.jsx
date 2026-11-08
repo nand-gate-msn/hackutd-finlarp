@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { usePresenceState } from './presenceState'
 
 // Open dialogs, oldest first: only the top-most one answers to Esc and Tab.
 const stack = []
@@ -8,15 +9,18 @@ const stack = []
 // (`within="container"`, e.g. the graph). Esc and the backdrop close it, focus moves in and returns on close,
 // and Tab stays inside while it is open.
 export default function Modal({ title, onClose, within = 'page', size = 'md', children, actions = null }) {
+  const active = usePresenceState()
   const dialog = useRef(null)
   const opener = useRef(null)
   const token = useRef({})
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     opener.current = document.activeElement
+    const rect = opener.current?.getBoundingClientRect()
+    const bounds = dialog.current?.getBoundingClientRect()
+    if (rect && bounds) dialog.current.style.transformOrigin = `${rect.left + rect.width / 2 - bounds.left}px ${rect.top + rect.height / 2 - bounds.top}px`
     const me = token.current
     stack.push(me)
-    dialog.current?.querySelector('[data-autofocus]')?.focus()
     return () => {
       stack.splice(stack.indexOf(me), 1)
       opener.current?.focus?.()
@@ -24,8 +28,9 @@ export default function Modal({ title, onClose, within = 'page', size = 'md', ch
   }, [])
 
   useEffect(() => {
+    if (active) dialog.current?.querySelector('[data-autofocus]')?.focus()
     const onKey = (e) => {
-      if (stack[stack.length - 1] !== token.current) return // a dialog on top of this one is in charge
+      if (!active || stack[stack.length - 1] !== token.current) return // a dialog on top of this one is in charge
       if (e.key === 'Escape') {
         e.stopPropagation()
         onClose()
@@ -41,10 +46,10 @@ export default function Modal({ title, onClose, within = 'page', size = 'md', ch
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }, [onClose, active])
 
   const view = (
-    <div className={`modal modal-${within}`} onPointerDown={(e) => e.stopPropagation()}>
+    <div className={`modal modal-${within}`} data-state={active ? 'open' : 'closed'} inert={!active} onPointerDown={(e) => e.stopPropagation()}>
       <div className="modal-backdrop" onClick={onClose} />
       <div className={`modal-dialog modal-${size}`} role="dialog" aria-modal="true" aria-label={title} ref={dialog}>
         <header className="modal-head">
