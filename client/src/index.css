@@ -84,6 +84,11 @@
   --negative: #b42318;
   --negative-subtle: #fdeceb;
   --ok-text: #8a5a00;
+  --glass-bg: rgb(255 255 255 / .90);
+  --glass-panel: rgb(255 255 255 / .97);
+  --glass-line: rgb(0 0 0 / .08);
+  --glass-highlight: rgb(255 255 255 / .65);
+  --glass-highlight-pressed: rgb(255 255 255 / .95);
   --warn-text: #a14a08;
   --state-hover: rgba(27, 29, 33, 0.06);
   --state-pressed: rgba(27, 29, 33, 0.12);
@@ -112,6 +117,11 @@
   --negative: #f87171;
   --negative-subtle: #3b1816;
   --ok-text: #facc15;
+  --glass-bg: rgb(23 25 28 / .94);
+  --glass-panel: rgb(23 25 28 / .97);
+  --glass-line: rgb(255 255 255 / .08);
+  --glass-highlight: rgb(255 255 255 / .12);
+  --glass-highlight-pressed: rgb(255 255 255 / .24);
   --warn-text: #fb923c;
   --state-hover: rgba(255, 255, 255, 0.07);
   --state-pressed: rgba(255, 255, 255, 0.13);
@@ -140,6 +150,11 @@
   --negative: #f87171;
   --negative-subtle: #3b1816;
   --ok-text: #facc15;
+  --glass-bg: rgb(23 25 28 / .94);
+  --glass-panel: rgb(23 25 28 / .97);
+  --glass-line: rgb(255 255 255 / .08);
+  --glass-highlight: rgb(255 255 255 / .12);
+  --glass-highlight-pressed: rgb(255 255 255 / .24);
   --warn-text: #fb923c;
   --state-hover: rgba(255, 255, 255, 0.07);
   --state-pressed: rgba(255, 255, 255, 0.13);
@@ -156,3 +171,12 @@ body { margin: 0; background: var(--canvas); }
 ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 button { font-family: var(--font); }
 input::placeholder { color: var(--ink-muted); opacity: 1; }
+
+:root {
+  --glass-bg-current: var(--glass-bg);
+  --glass-blur-panel: 20px;
+  --glass-blur-control: 12px;
+  --glass-saturation: 1.6;
+  --glass-edge: inset 0 1px 0 var(--glass-highlight), inset 1px 0 0 var(--glass-highlight);
+  --glass-edge-pressed: inset 0 1px 0 var(--glass-highlight-pressed), inset 1px 0 0 var(--glass-highlight-pressed);
+}

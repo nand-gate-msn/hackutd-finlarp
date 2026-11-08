@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import ForecastChart from './ForecastChart'
 import Modal from './Modal'
 import Presence from './Presence'
+import SegmentedControl from './SegmentedControl'
 import { applyGhosts, approxMeasure, FONT, LABEL_GAP, LABEL_H, layoutGraph, PILL_H, refresh, settle, wake } from './graphLayout.js'
 import { compact, money, titleCase } from './format'
 import { post } from './api'
@@ -460,6 +461,7 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
         </g>
       </svg>
 
+      <div className="graph-toolbar">
       {layers.length > 0 && (
         <button
           className={`gforecast ${open ? 'on' : ''}`}
@@ -471,14 +473,15 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
           Forecast
         </button>
       )}
-      <Presence show={open} className="modal-host">
-        {open && <ForecastModal layers={layers} start={projection?.scenario?.series?.start} onClose={() => setForecastOpen(false)} />}
-      </Presence>
       <div className="gctl" role="group" aria-label="Graph view controls">
         <button onClick={() => zoomBy(1.25)} aria-label="Zoom in">+</button>
         <button onClick={() => zoomBy(0.8)} aria-label="Zoom out">−</button>
         <button onClick={fit} aria-label="Fit to screen">⤢</button>
       </div>
+      </div>
+      <Presence show={open} className="modal-host">
+        {open && <ForecastModal layers={layers} start={projection?.scenario?.series?.start} onClose={() => setForecastOpen(false)} />}
+      </Presence>
       <p className="ghint">Drag a node to pull its neighbours · scroll to zoom · drag the background to pan · hover to trace</p>
       <Presence show={flagList.length > 0} className="gflags" as="aside" aria-label="Problems found">
           <button className="gflags-head" aria-expanded={flagsOpen} onClick={() => setFlagsOpen((v) => !v)}>
@@ -548,13 +551,7 @@ export default function GraphView({ projection = null, refresh: refreshKey = 0, 
             are projections: what a decision or a suggestion would add.
           </p>
         </div>
-        <div className="seg" role="group" aria-label="Time window">
-          {WINDOWS.map((d) => (
-            <button key={d} className={d === days ? 'on' : ''} onClick={() => setDays(d)}>
-              {d}d
-            </button>
-          ))}
-        </div>
+        <SegmentedControl values={WINDOWS} value={days} onChange={setDays} label="Time window" />
       </div>
       <div className="legend">
         <span><i className="sw n-income" />Income</span>

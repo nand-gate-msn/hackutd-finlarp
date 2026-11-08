@@ -128,6 +128,7 @@ export default function App() {
 
   return (
     <div className="shell">
+    <div className="ambient" aria-hidden="true" />
     <main className="app">
       <header className="page-head">
         <h1>Cash Flow Copilot</h1>

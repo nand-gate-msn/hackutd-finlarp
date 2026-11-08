@@ -506,3 +506,88 @@ h1, h2, h3 { text-wrap: balance; }
 @media (prefers-reduced-motion: reduce) {
   .presence[data-state="closed"], .modal[data-state="closed"] .modal-dialog { transform: none !important; }
 }
+
+/* One static ambient layer. Only accent and neutral fields; never animated. */
+body { isolation: isolate; }
+.ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .22; filter: blur(80px);
+  background: radial-gradient(ellipse at 80% 10%, var(--accent), transparent 55%),
+              radial-gradient(ellipse at 5% 65%, var(--track), transparent 60%); }
+.shell { grid-template-columns: minmax(0, 1fr) 360px; }
+.app { padding: var(--space-8) var(--space-6) var(--space-16); }
+.sidebar { top: var(--space-4); margin: var(--space-4) var(--space-4) var(--space-4) 0; height: calc(100dvh - 32px); border-radius: var(--radius-lg); overflow: hidden; }
+.sidebar, .gdetail { --glass-bg-current: var(--glass-panel); background: var(--glass-bg-current); -webkit-backdrop-filter: blur(var(--glass-blur-panel)) saturate(var(--glass-saturation)); backdrop-filter: blur(var(--glass-blur-panel)) saturate(var(--glass-saturation)); border: 1px solid var(--glass-line); box-shadow: var(--glass-edge), var(--elevation-2); font-weight: 500; }
+.gdetail { border-radius: var(--radius-lg); padding: var(--space-4); width: min(360px, calc(100% - 24px)); }
+.copilot-head, .copilot-foot { background: transparent; border: 0; }
+.copilot-head { padding: var(--space-5) var(--space-5) var(--space-3); }
+.copilot-foot { padding: var(--space-3); }
+.copilot-scroll { padding: var(--space-3) var(--space-5) var(--space-4);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 16px), transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 12px, black calc(100% - 16px), transparent); }
+.sidebar .muted, .sidebar .small, .gdetail .muted { font-weight: 500; }
+.seg, .graph-toolbar { background: var(--glass-bg); border: 1px solid var(--glass-line); -webkit-backdrop-filter: blur(var(--glass-blur-control)) saturate(var(--glass-saturation)); backdrop-filter: blur(var(--glass-blur-control)) saturate(var(--glass-saturation)); box-shadow: var(--glass-edge), var(--elevation-2); color: var(--ink); font-weight: 500; }
+.seg { position: relative; padding: var(--space-1); border-radius: var(--radius-md); overflow: visible; gap: 0; }
+.seg button { position: relative; z-index: 1; border: 0; border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); color: var(--ink-muted); font-weight: 500; }
+.seg button + button { border: 0; }
+.seg button.on { background: transparent; color: var(--ink); }
+.seg-thumb { position: absolute; top: var(--space-1); bottom: var(--space-1); left: 0; border-radius: var(--radius-sm); background: var(--surface); box-shadow: var(--elevation-1); pointer-events: none; }
+.graph-toolbar { position: absolute; top: var(--space-3); left: var(--space-3); display: flex; align-items: center; gap: var(--space-1); padding: var(--space-1); border-radius: var(--radius-md); z-index: 6; }
+.gctl { position: static; flex-direction: row; background: transparent; border: 0; overflow: visible; border-radius: var(--radius-sm); }
+.gctl button { border: 0; width: var(--control-sm); height: var(--control-sm); border-radius: var(--radius-sm); }
+.gctl button:hover { background: var(--state-hover); }
+.gforecast, .gforecast.inline { position: static; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); padding: var(--space-2) var(--space-3); }
+.gforecast:hover, .gforecast.on { color: var(--ink); background: var(--state-hover); }
+:is(.seg, .graph-toolbar):has(button:active) { box-shadow: var(--glass-edge-pressed), var(--elevation-2); }
+:is(.seg, .graph-toolbar, .sidebar, .gdetail):focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Sidebar + toolbar + tray = three. A drawer replaces the tray material. */
+.shell:has(.gdetail) .seg, body:has(.modal) :is(.sidebar, .gdetail, .seg, .graph-toolbar) {
+  background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+/* Dense data surfaces stay opaque. The drawer's inner corners are 20 - 16, snapped to sm. */
+.gdetail .problem, .gdetail .proposal, .accepted-bar { border-radius: var(--radius-sm); }
+.legend, .health, .flow, .gauge, .gflags, .notice, .stat, .card, table, .gcanvas { background-color: var(--surface); }
+.gauge { border-radius: var(--radius-md); }
+.legend { padding-block: var(--space-2); }
+.bar-fill, .bar-track { border-radius: var(--radius-pill); }
+.btn { min-height: var(--control-md); font-size: var(--text-ui); }
+.btn.sm { min-height: var(--control-sm); }
+.chip { min-height: var(--control-sm); padding: var(--space-1) var(--space-3); }
+.badge { padding: var(--space-1) var(--space-3); }
+.section { margin-top: var(--space-6); }
+.stat { padding: var(--space-4); }
+.indicators { gap: var(--space-4); }
+.indicator { padding: var(--space-3) 0; }
+.health { gap: var(--space-6); }
+.page-head p { font-size: var(--text-ui); }
+.stat-value { line-height: var(--leading-title); }
+.gn circle { fill: var(--surface); stroke: var(--line-control); }
+.gn-income circle { fill: var(--positive-subtle); stroke: var(--positive); }
+.gn-category circle { fill: var(--track); }
+.gn-account circle { stroke: var(--accent); }
+.gn-obligation circle { stroke-dasharray: 4 3; }
+.gn.selected circle { stroke: var(--accent); }
+.gn.ghost circle { fill: var(--surface); }
+.sw.n-obligation { background: var(--ink); border-radius: 0; transform: rotate(45deg); }
+.sw.n-category { background: var(--ink-muted); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+@media (max-width: 1000px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { margin: var(--space-4); height: 640px; }
+}
+@media (max-width: 560px) {
+  .app { padding: var(--space-6) var(--space-4) var(--space-16); }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .panel { padding: var(--space-4); }
+  .card-head { flex-wrap: wrap; }
+  .health { grid-template-columns: minmax(0, 1fr); }
+  .pillars { grid-template-columns: minmax(0, 1fr); }
+  .bar-row { grid-template-columns: minmax(64px, 1fr) minmax(24px, 1fr) auto; }
+  .gdetail { width: calc(100% - 24px); }
+  .ghint { max-width: calc(100% - 24px); }
+  .gflags { max-height: 38%; top: 80px; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sidebar, .seg, .graph-toolbar, .gdetail { background: var(--surface); border: 1px solid var(--line-control); }
+}
+:is(.seg, .graph-toolbar, .sidebar, .gdetail):focus-within {
+  box-shadow: var(--glass-edge), 0 0 0 4px var(--surface), var(--elevation-2);
+}
