@@ -1,18 +1,6 @@
-import importlib.machinery
-import importlib.util
-import sys
 from datetime import date, timedelta
-from pathlib import Path
 
-
-BACKTEST_PATH = Path(__file__).resolve().parents[2] / "engine-firewall" / "backtest"
-_LOADER = importlib.machinery.SourceFileLoader("engine_firewall_backtest_test", str(BACKTEST_PATH))
-_SPEC = importlib.util.spec_from_loader(_LOADER.name, _LOADER)
-if _SPEC is None:
-    raise ImportError(f"Unable to load backtest module from {BACKTEST_PATH}")
-backtest = importlib.util.module_from_spec(_SPEC)
-sys.modules[_LOADER.name] = backtest
-_LOADER.exec_module(backtest)
+from app.engine_firewall import backtest
 
 
 def test_rolling_backtest_scores_multiple_origins_without_lookahead(monkeypatch):

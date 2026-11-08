@@ -9,6 +9,7 @@ from app import actions, ingest
 from app.config import settings
 from app.datagen import PERSONAS, generate
 from app.db import private_db, work_db
+from app.engine_firewall.overallFinHealth import read_overall_fin_health
 from app.overview import build_overview, is_loaded
 
 END = date(2026, 11, 7)
@@ -143,6 +144,22 @@ def test_load_builds_tagged_graph_and_matches_bills_in_due_order(loaded):
         assert source_type == "income" and target_type == "obligation"
         due_dates_by_paycheck.setdefault(paycheck_date, []).append(due_date)
     assert all(dates == sorted(dates) for dates in due_dates_by_paycheck.values())
+
+
+def test_overall_fin_health_is_persisted_and_readable(loaded):
+    with work_db() as w:
+        row = w.execute(
+            "SELECT overallFinHealth, status, report_json FROM overall_fin_health WHERE id=1"
+        ).fetchone()
+
+    stored = read_overall_fin_health()
+    assert row is not None and stored is not None
+    assert row["overallFinHealth"] == stored["overallFinHealth"]
+    assert row["status"] == stored["status"]
+    assert stored["report"]["overallFinHealth"] == stored["overallFinHealth"]
+    assert set(stored["report"]["pillars"]) == {"Spend", "Save", "Borrow", "Plan"}
+    assert stored["report"]["indicators"]["bill_timeliness"]["score"] is None
+    assert stored["report"]["indicators"]["credit_utilization"]["score"] is None
 
 
 def test_app_has_no_external_dependencies_at_import_time():

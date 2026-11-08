@@ -16,6 +16,7 @@ from .categories import categorize
 from .datagen import History
 from .datagen.personas import ACCOUNT_SPECS, CHECKING, SAVINGS
 from .db import private_db, rebuild_graph, work_db
+from .engine_firewall.overallFinHealth import refresh_overall_fin_health
 
 _LABELS = [
     (re.compile(r"paycheck|payroll|salary|direct deposit", re.I), "paycheck"),
@@ -105,5 +106,7 @@ def load_history(h: History) -> dict:
             ("loaded_at", now), ("source", source), ("persona", persona.key),
             ("seed", str(h.seed)), ("months", str(h.months))])
         graph_counts = rebuild_graph(w)
+        health_report = refresh_overall_fin_health(w)
     return {"source": source, "accounts": len(acct), "transactions": len(txns),
-            "obligations": len(obligations), "loaded_at": now, **graph_counts}
+            "obligations": len(obligations), "loaded_at": now,
+            "overallFinHealth": health_report["overallFinHealth"], **graph_counts}

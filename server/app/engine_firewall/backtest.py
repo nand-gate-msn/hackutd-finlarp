@@ -2,23 +2,11 @@
 
 from __future__ import annotations
 
-import importlib.machinery
-import importlib.util
-import sys
 from datetime import date, timedelta
-from pathlib import Path
 from statistics import mean
 from typing import Iterable, Mapping
 
-
-_MONTE_CARLO_PATH = Path(__file__).with_name("montecarlo")
-_LOADER = importlib.machinery.SourceFileLoader("engine_firewall_montecarlo", str(_MONTE_CARLO_PATH))
-_SPEC = importlib.util.spec_from_loader(_LOADER.name, _LOADER)
-if _SPEC is None:
-    raise ImportError(f"Unable to load Monte Carlo engine from {_MONTE_CARLO_PATH}")
-_monte_carlo = importlib.util.module_from_spec(_SPEC)
-sys.modules[_LOADER.name] = _monte_carlo
-_LOADER.exec_module(_monte_carlo)
+from . import montecarlo as _monte_carlo
 
 
 HORIZON_DAYS = 30
