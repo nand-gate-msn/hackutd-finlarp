@@ -252,3 +252,20 @@ def test_reverting_to_the_latest_change_is_a_harmless_no_op(client):
     *_, last = accept_many(client)
     body = client.post("/api/revert", json={"to_rule_id": last}).json()
     assert body["reverted"] == [] and body["forecast"]["after"] == body["forecast"]["before"]
+
+
+@pytest.mark.parametrize("existing_percent", [None, 3.0, 5.0])
+def test_asking_copilot_never_accepts_or_changes_saved_rules(client, existing_percent):
+    """Advice stays read-only, even when a suggestion matches an older confirmed rule."""
+    if existing_percent is not None:
+        accept(client, percent=existing_percent)
+    rules_before = client.get('/api/rules').json()
+    overview_before = client.get('/api/overview').json()
+
+    events = advise(client)
+
+    assert events[-1][0] == 'result'
+    if existing_percent is None:
+        assert events[-1][1]['proposals']
+    assert client.get('/api/rules').json() == rules_before
+    assert client.get('/api/overview').json() == overview_before

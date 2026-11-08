@@ -106,7 +106,7 @@ def test_canaries_never_leave_through_any_agent_or_log(request_log):
     for secret in (*CANARIES, CANARY_ID, CANARY_EMAIL, SECRET_KEY):
         assert secret not in everything, f"leaked: {secret}"
     planner_text = fake.calls["planner"][0]["messages"][1]["content"]
-    assert planner_text.startswith("Can I afford a car?") and REDACTED in planner_text
+    assert "<<<Can I afford a car?" in planner_text and REDACTED in planner_text
 
     # ...but the customer's own screen gets the real name back
     shown = present(state)["proposals"][0]

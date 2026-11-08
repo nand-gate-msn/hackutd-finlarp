@@ -57,57 +57,57 @@ export default function Metrics({ refresh = 0 }) {
   const missing = Object.values(m.indicators).filter((i) => i.score == null)
 
   return (
-    <section className="panel">
+    <section className="panel metrics-panel">
       <div className="panel-head">
         <div>
+          <span className="eyebrow">The bigger picture</span>
           <h2>Financial health</h2>
-          <p className="muted">
-            A weighted score from four pillars, computed by code from your transactions (not by an AI),
-            so every number can be traced back to its formula. Hover an indicator for details.
-          </p>
+          <p className="muted">Your overall score and the four pillars behind it.</p>
         </div>
+        <details className="score-method"><summary>How the score works</summary><p>A weighted score computed from your transactions, using fixed formulas rather than AI. Each pillar contributes the weight shown below. Explore the indicators for the underlying measurements.</p></details>
       </div>
 
       <div className="health">
-        <Gauge score={m.overallFinHealth} status={m.status} />
-
+        <div className="health-overall">
+          <span className="eyebrow">Overall score</span>
+          <Gauge score={m.overallFinHealth} status={m.status} />
+          <span className="small muted">Out of 100</span>
+        </div>
         <div className="pillars">
           {Object.entries(m.pillars).map(([name, p]) => (
             <div className="pillar" key={name}>
-              <div className="pillar-top">
-                <b>{name}</b>
-                <span className={`pill t-${tone(p.score)}`}>{p.score ?? '—'}</span>
-              </div>
+              <div className="pillar-top"><h3>{name}</h3><span className={`pill t-${tone(p.score)}`}>{p.score ?? '—'}<small> / 100</small></span></div>
               <div className="bar-track"><div className={`bar-fill f-${tone(p.score)}`} style={{ transform: `scaleX(${(p.score ?? 0) / 100})` }} /></div>
-              <span className="muted small">{PILLAR_HINT[name]} · {Math.round(p.weight * 100)}% weight</span>
+              <div className="pillar-description"><span>{PILLAR_HINT[name]}</span><span>{Math.round(p.weight * 100)}% weight</span></div>
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="flow">
-          <span className="stat-label">Last 90&nbsp;days</span>
-          <div><span>Income</span><b className="good">{money.format(flow.income / 100)}</b></div>
-          <div><span>Spent</span><b className="bad">{money.format(flow.spend / 100)}</b></div>
-          <div><span>Saved</span><b>{money.format(flow.saved / 100)}</b></div>
-          <div className="flow-net"><span>Net</span><b className={net >= 0 ? 'good' : 'bad'}>{money.format(net / 100)}</b></div>
-          <div><span>Cash on hand</span><b>{money.format(m.cash_cents / 100)}</b></div>
+      <div className="flow-summary">
+        <h3>Cash flow <span className="muted small">Last 90&nbsp;days</span></h3>
+        <dl>
+          <div><dt>Income</dt><dd>{money.format(flow.income / 100)}</dd></div>
+          <div><dt>Spent</dt><dd>{money.format(flow.spend / 100)}</dd></div>
+          <div><dt>Saved</dt><dd>{money.format(flow.saved / 100)}</dd></div>
+          <div className="flow-summary-net"><dt>Net cash flow</dt><dd className={net >= 0 ? 'good' : 'bad'}>{money.format(net / 100)}</dd></div>
+          <div><dt>Cash on hand</dt><dd>{money.format(m.cash_cents / 100)}</dd></div>
+        </dl>
+      </div>
+
+      <details className="metric-details">
+        <summary><span>Explore {indicators.length} health indicators</span><span className="small muted">Savings, debt & resilience</span></summary>
+        <div className="indicators">
+          {indicators.map(([key, i]) => (
+            <div className={`indicator t-${tone(i.score)}`} key={key} title={i.note}>
+              <span className="indicator-label">{i.label}</span><b>{i.display}</b>
+              <div className="bar-track"><div className={`bar-fill f-${tone(i.score)}`} style={{ transform: `scaleX(${i.score / 100})` }} /></div>
+              <p className="small muted">{i.note}</p>
+            </div>
+          ))}
         </div>
-      </div>
-
-      <div className="indicators">
-        {indicators.map(([key, i]) => (
-          <div className={`indicator t-${tone(i.score)}`} key={key} title={i.note}>
-            <span className="stat-label">{i.label}</span>
-            <b>{i.display}</b>
-            <div className="bar-track"><div className={`bar-fill f-${tone(i.score)}`} style={{ transform: `scaleX(${i.score / 100})` }} /></div>
-          </div>
-        ))}
-      </div>
-      {missing.length > 0 && (
-        <p className="muted small">
-          Not scored yet (no data): {missing.map((i) => i.label.toLowerCase()).join(', ')}.
-        </p>
-      )}
+        {missing.length > 0 && <p className="muted small">Not scored yet (no data): {missing.map(i => i.label.toLowerCase()).join(', ')}.</p>}
+      </details>
     </section>
   )
 }

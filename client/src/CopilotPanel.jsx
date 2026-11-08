@@ -10,10 +10,13 @@ const subscribe = callback => {
 const getMobile = () => mobileQuery().matches
 const SNAP_LABELS = ['Closed', 'Half height', 'Expanded']
 
-export default function CopilotPanel({ children }) {
+export default function CopilotPanel({ children, width = 400, onWidthChange }) {
   const mobile = useSyncExternalStore(subscribe, getMobile)
   const [snap, setSnap] = useState(0)
   const panel = useRef(null), launcher = useRef(null), motion = useRef(null)
+  const resizing = useRef(null)
+  const maxWidth = () => Math.max(320, Math.min(640, window.innerWidth - 600))
+  const resizeTo = next => onWidthChange?.(Math.round(Math.max(320, Math.min(maxWidth(), next))))
   const height = useRef(0), currentSnap = useRef(0), drag = useRef(null)
   const snapY = point => point === 0 ? height.current + 24 : point === 1 ? height.current * .45 : 0
 
@@ -76,7 +79,7 @@ export default function CopilotPanel({ children }) {
     settle(point, velocity)
   }
   const onKeyDown = e => {
-    if (!mobile || snap === 0) return
+    if (!mobile || snap === 0 || !panel.current.contains(e.target)) return
     if (e.key === 'Escape') { e.stopPropagation(); settle(0) }
     if (e.key === 'Tab') {
       const items = [...panel.current.querySelectorAll('button, input, [tabindex="0"]')].filter(el => !el.disabled)
@@ -90,6 +93,13 @@ export default function CopilotPanel({ children }) {
       <button ref={launcher} className="btn copilot-launcher" onClick={open} aria-haspopup="dialog" aria-expanded={snap > 0} hidden={mobile && snap > 0}>Ask the copilot</button>
       <div className="sheet-dimmer" data-open={mobile && snap > 0} onClick={() => settle(0)} aria-hidden="true" />
       <aside ref={panel} className="sidebar mobile-sheet" data-snap={snap} role={mobile ? 'dialog' : undefined} aria-modal={mobile && snap > 0 ? true : undefined} aria-label="Copilot" aria-hidden={mobile && snap === 0 ? true : undefined} inert={mobile && snap === 0} onKeyDown={onKeyDown}>
+        <div className="sidebar-resizer" role="separator" aria-label="Resize copilot" aria-orientation="vertical" aria-valuemin={320} aria-valuemax={maxWidth()} aria-valuenow={Math.min(width, maxWidth())} tabIndex={mobile ? -1 : 0}
+          title="Drag to resize. Use left and right arrow keys when focused."
+          onPointerDown={e => { if (e.button !== 0) return; e.currentTarget.setPointerCapture(e.pointerId); resizing.current = { x: e.clientX, width: panel.current.getBoundingClientRect().width + 16 } }}
+          onPointerMove={e => { if (resizing.current) resizeTo(resizing.current.width + resizing.current.x - e.clientX) }}
+          onPointerUp={() => { resizing.current = null }} onPointerCancel={() => { resizing.current = null }} onLostPointerCapture={() => { resizing.current = null }}
+          onDoubleClick={() => resizeTo(400)}
+          onKeyDown={e => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) { e.preventDefault(); resizeTo(e.key === 'Home' ? 320 : e.key === 'End' ? maxWidth() : Math.min(width, maxWidth()) + (e.key === 'ArrowLeft' ? 24 : -24)) } }} />
         <div className="sheet-controls">
           <button className="sheet-grip" role="slider" aria-label="Copilot sheet height" aria-valuemin={0} aria-valuemax={2} aria-valuenow={snap} aria-valuetext={SNAP_LABELS[snap]} aria-orientation="vertical" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onLostPointerCapture={onPointerUp}
             onKeyDown={e => {

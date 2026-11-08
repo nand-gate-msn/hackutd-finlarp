@@ -76,6 +76,7 @@ _MONEY = re.compile(
 _ITEM = r"(?:cars?|vehicles?|trucks?|suvs?|motorcycles?|houses?|homes?|apartments?|condos?|yachts?|boats?|jets?|planes?|mansions?)"
 _COUNT = re.compile(rf"\b(?P<n>\d{{1,4}}|{'|'.join(_WORDS)})\s+(?:[\w-]+\s+){{0,2}}?(?P<item>{_ITEM})\b", re.I)
 _HOUSING = re.compile(r"house|home|apartment|condo|mansion", re.I)
+_IDENTIFIERS = re.compile(r"\b\d[\d -]{6,}\d\b|[\w.+-]+@[\w-]+\.[\w.-]+")
 _EACH = re.compile(r"\b(?:each|per|apiece|every)\b", re.I)
 
 
@@ -105,6 +106,7 @@ def assess(text: str, monthly_income_cents: int) -> Guard:
     if _blocked(text):
         return Guard(level="blocked", message=BLOCKED_MESSAGE)
 
+    text = _IDENTIFIERS.sub(" ", text)  # an account number or email is not a price
     count, item = _count(text)
     amounts = _amounts(text)
     if item is None and not amounts:

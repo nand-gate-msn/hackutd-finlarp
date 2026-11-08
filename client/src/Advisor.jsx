@@ -120,7 +120,13 @@ function Result({ r, rules, choice, onProject, onAccepted }) {
 
   return (
     <div className="advice">
+      <div className="preview-notice"><span className="badge badge-accent">Preview only</span><span>No changes are saved until you review and confirm.</span></div>
       <Health h={r.health} />
+      {r.guard && (
+        <div className={`notice ${r.guard.level === 'extreme' ? 'bad' : ''}`} role="alert">
+          {r.guard.message}
+        </div>
+      )}
       <p className="explanation">{r.explanation.text}</p>
 
       <div className="chances">
@@ -143,7 +149,7 @@ function Result({ r, rules, choice, onProject, onAccepted }) {
           <h3>Suggested changes</h3>
           {anyAccepted && (
             <p className="muted small">
-              {indexed.length - open.length} of {indexed.length} accepted. It is listed under “Changes accepted”.
+              {indexed.length - open.length} of these suggestions already match your saved changes. Asking this question has not added any changes.
             </p>
           )}
           {anyAccepted && open.length > 0 && (
@@ -153,10 +159,10 @@ function Result({ r, rules, choice, onProject, onAccepted }) {
               aria-expanded={showOthers}
               onClick={() => setShowOthers((v) => !v)}
             >
-              {showOthers ? 'Hide other suggested options' : `See other suggested options (${open.length})`}
+              {showOthers ? 'Hide new suggestions' : `View new suggestions (${open.length})`}
             </button>
           )}
-          {!anyAccepted && <p className="muted small">Select one to preview it on the graph.</p>}
+          {!anyAccepted && <p className="muted small">Preview a suggestion on the graph, then review it if you want to save it.</p>}
           {listShown && open.length > 0 && (
             <ul className="proposals">
               {open.map(({ p, i }) => (
@@ -172,7 +178,7 @@ function Result({ r, rules, choice, onProject, onAccepted }) {
               ))}
             </ul>
           )}
-          {anyAccepted && open.length === 0 && <p className="muted small">That was the last suggestion.</p>}
+          {anyAccepted && open.length === 0 && <p className="muted small">These suggestions are already active in your saved changes.</p>}
         </section>
       )}
       {r.retries > 0 && <p className="muted small">Reviewed and revised {r.retries}× before showing you this.</p>}
@@ -257,11 +263,11 @@ export default function Advisor({ rules = [], choice = null, onDecision, onProje
   }
 
   return (
-    <section className="copilot" aria-label="Copilot">
+    <section className="copilot" data-state={running ? 'working' : result ? 'result' : 'empty'} aria-label="Copilot">
       <header className="copilot-head">
-        <h2>Copilot</h2>
+        <div className="copilot-title"><h2>Copilot</h2><span className="badge badge-accent">What-if workspace</span></div>
         <p className="muted small">
-          Ask about a decision or worry. The AI sees only anonymous summaries; your names and numbers stay here.
+          Explore the impact of a decision before you make it. You choose what gets saved.
         </p>
       </header>
 
@@ -280,17 +286,20 @@ export default function Advisor({ rules = [], choice = null, onDecision, onProje
             maxLength={500}
             aria-label="Your question"
           />
-          <button className="btn" disabled={running || !text.trim()}>
+          <button type="submit" className="btn" disabled={running || !text.trim()}>
             {running ? 'Working…' : 'Ask'}
           </button>
         </form>
+        <details className="copilot-ideas" open={!running && !result}><summary>Try a question</summary>
         <div className="ideas">
           {IDEAS.map((q) => (
-            <button key={q} className="chip" disabled={running} onClick={() => { setText(q); ask(q) }}>
+            <button type="button" key={q} className="chip" disabled={running} onClick={() => { setText(q); ask(q) }}>
               {q}
             </button>
           ))}
         </div>
+        </details>
+        {!running && !result && !error && <p className="copilot-empty-note">Ask about a purchase, a bill or a change in income. The copilot uses anonymous summaries to explore what could happen.</p>}
 
         {(running || Object.keys(steps).length > 0) && !result && !error && <Progress steps={steps} />}
         {error && <p className="state error">{error}</p>}
@@ -317,6 +326,7 @@ export default function Advisor({ rules = [], choice = null, onDecision, onProje
 
       <footer className="copilot-foot">
         <AcceptedChanges rules={rules} scenario={result?.scenario ?? null} onChanged={onDecision} />
+        <p className="saved-changes-hint">Only changes you confirm are saved.</p>
       </footer>
     </section>
   )

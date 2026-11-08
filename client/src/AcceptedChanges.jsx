@@ -26,8 +26,8 @@ export default function AcceptedChanges({ rules, scenario, onChanged }) {
       >
         <span className="accepted-icon" aria-hidden="true">✓</span>
         <span className="accepted-text">
-          <span className="accepted-label">Changes accepted{latest ? <em>{rules.length}</em> : null}</span>
-          <span className="accepted-latest" title={latest?.title}>{latest ? latest.title : 'None yet. Accept a suggestion to start.'}</span>
+          <span className="accepted-label">Saved changes{latest ? <em>{rules.length}</em> : null}</span>
+          <span className="accepted-latest" title={latest?.title}>{latest ? latest.title : 'No saved changes yet.'}</span>
         </span>
         {latest && <span className="accepted-chevron" aria-hidden="true">›</span>}
       </button>
