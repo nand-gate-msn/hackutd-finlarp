@@ -1,0 +1,16 @@
+[Unit]
+Description=Cash Flow Copilot (FastAPI + built React app)
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/app/server
+# One worker only: SQLite allows a single writer.
+ExecStart=/home/ubuntu/app/server/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 80 --workers 1
+# Lets a non-root user bind port 80.
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

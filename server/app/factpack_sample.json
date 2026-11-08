@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "accounts": [
+    {"alias": "acct_A", "type": "Checking", "balance_band": "low"},
+    {"alias": "acct_B", "type": "Savings", "balance_band": "moderate"}
+  ],
+  "metrics": [
+    {"key": "savings_rate", "value": 0.04, "status": "risk", "formula": "(income - outflow) / income"},
+    {"key": "cash_runway", "value": 14.0, "status": "risk", "formula": "liquid balance / average daily outflow (days)"},
+    {"key": "housing_debt_load", "value": 0.52, "status": "risk", "formula": "(housing + debt payments) / income"},
+    {"key": "overdraft_probability_30d", "value": 0.18, "status": "watch", "formula": "share of simulated paths where balance < 0 within 30 days"},
+    {"key": "income_stability", "value": 0.91, "status": "ok", "formula": "1 - coefficient of variation of monthly income"},
+    {"key": "spending_volatility", "value": 0.35, "status": "watch", "formula": "coefficient of variation of weekly variable spending"},
+    {"key": "recurring_discretionary_load", "value": 0.06, "status": "ok", "formula": "recurring discretionary payments / income"}
+  ],
+  "categories": [
+    {"group": "Housing", "share_of_outflow": 0.38, "band": "high"},
+    {"group": "Food", "share_of_outflow": 0.18, "band": "moderate"},
+    {"group": "Transport", "share_of_outflow": 0.10, "band": "moderate"},
+    {"group": "Discretionary", "share_of_outflow": 0.12, "band": "moderate"},
+    {"group": "Debt", "share_of_outflow": 0.14, "band": "moderate"},
+    {"group": "Health", "share_of_outflow": 0.04, "band": "low"},
+    {"group": "Other", "share_of_outflow": 0.04, "band": "low"}
+  ],
+  "obligations": [
+    {"alias": "bill_1", "kind": "bill", "group": "Housing", "share_of_income": 0.33, "late_rate_band": "very_low"},
+    {"alias": "bill_2", "kind": "bill", "group": "Housing", "share_of_income": 0.04, "late_rate_band": "low"},
+    {"alias": "loan_1", "kind": "loan", "group": "Debt", "share_of_income": 0.09, "late_rate_band": "low"}
+  ],
+  "forecast": {
+    "horizon_days": 30,
+    "p10_band": "very_low",
+    "p50_band": "low",
+    "p90_band": "moderate",
+    "share_below_zero": 0.18,
+    "tag": "simulated"
+  },
+  "scenario": {"kind": "car_loan", "payment_ratio_of_income": 0.12, "term_months": 60},
+  "rules": []
+}
