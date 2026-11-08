@@ -120,6 +120,31 @@ def test_overview_shape_matches_what_the_client_reads(loaded):
     assert {"count", "total", "recent"} <= set(acct["purchases"])
 
 
+def test_load_builds_tagged_graph_and_matches_bills_in_due_order(loaded):
+    with work_db() as w:
+        node_types = {r[0] for r in w.execute("SELECT DISTINCT node_type FROM graph_nodes")}
+        edge_types = {r[0] for r in w.execute("SELECT DISTINCT edge_type FROM graph_edges")}
+        tags = {r[0] for r in w.execute(
+            "SELECT tag FROM graph_nodes UNION SELECT tag FROM graph_edges")}
+        matches = w.execute(
+            "SELECT e.date, e.due_date, source.node_type, target.node_type "
+            "FROM graph_edges e "
+            "JOIN graph_nodes source ON source.node_id=e.source_node_id "
+            "JOIN graph_nodes target ON target.node_id=e.target_node_id "
+            "WHERE e.edge_type='pays' AND e.tag='simulated' ORDER BY e.date, e.id"
+        ).fetchall()
+
+    assert {"income", "account", "obligation", "category"} <= node_types
+    assert {"funds", "pays", "transfers"} <= edge_types
+    assert tags <= {"observed", "simulated", "proposed"}
+    assert matches
+    due_dates_by_paycheck = {}
+    for paycheck_date, due_date, source_type, target_type in matches:
+        assert source_type == "income" and target_type == "obligation"
+        due_dates_by_paycheck.setdefault(paycheck_date, []).append(due_date)
+    assert all(dates == sorted(dates) for dates in due_dates_by_paycheck.values())
+
+
 def test_app_has_no_external_dependencies_at_import_time():
     """No Nessie, no Supabase, no HTTP client: loading the app must not import any of them."""
     code = ("import sys, app.main; bad = [m for m in ('httpx', 'app.nessie', 'supabase') if m in sys.modules]; "

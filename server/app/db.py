@@ -12,8 +12,21 @@ WAL mode lets the API read while a load is writing.
 
 import sqlite3
 from contextlib import contextmanager
+from importlib.machinery import SourceFileLoader
+from importlib.util import module_from_spec, spec_from_loader
+from pathlib import Path
 
 from .config import settings
+
+_GRAPH_TABLES_PATH = Path(__file__).resolve().parents[2] / "engine-firewall" / "graphTables"
+_GRAPH_LOADER = SourceFileLoader("finmetrics_graph_tables", str(_GRAPH_TABLES_PATH))
+_GRAPH_SPEC = spec_from_loader(_GRAPH_LOADER.name, _GRAPH_LOADER)
+if _GRAPH_SPEC is None:
+    raise ImportError(f"Unable to load graph schema from {_GRAPH_TABLES_PATH}")
+_GRAPH_MODULE = module_from_spec(_GRAPH_SPEC)
+_GRAPH_LOADER.exec_module(_GRAPH_MODULE)
+GRAPH_SCHEMA = _GRAPH_MODULE.GRAPH_SCHEMA
+rebuild_graph = _GRAPH_MODULE.rebuild_graph
 
 WORK_SCHEMA = """
 CREATE TABLE IF NOT EXISTS accounts (
@@ -36,7 +49,7 @@ CREATE TABLE IF NOT EXISTS rules (
     from_alias TEXT, to_alias TEXT, percent REAL, amount_cents INTEGER,
     status TEXT NOT NULL DEFAULT 'active', created_at TEXT NOT NULL, undone_at TEXT);
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
-"""
+""" + GRAPH_SCHEMA
 
 PRIVATE_SCHEMA = """
 CREATE TABLE IF NOT EXISTS alias_map (

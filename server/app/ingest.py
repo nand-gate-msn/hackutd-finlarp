@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from .categories import categorize
 from .datagen import History
 from .datagen.personas import ACCOUNT_SPECS, CHECKING, SAVINGS
-from .db import private_db, work_db
+from .db import private_db, rebuild_graph, work_db
 
 _LABELS = [
     (re.compile(r"paycheck|payroll|salary|direct deposit", re.I), "paycheck"),
@@ -104,5 +104,6 @@ def load_history(h: History) -> dict:
         w.executemany("INSERT OR REPLACE INTO meta VALUES (?,?)", [
             ("loaded_at", now), ("source", source), ("persona", persona.key),
             ("seed", str(h.seed)), ("months", str(h.months))])
+        graph_counts = rebuild_graph(w)
     return {"source": source, "accounts": len(acct), "transactions": len(txns),
-            "obligations": len(obligations), "loaded_at": now}
+            "obligations": len(obligations), "loaded_at": now, **graph_counts}
