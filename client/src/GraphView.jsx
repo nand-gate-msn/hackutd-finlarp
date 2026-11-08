@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react'
 import ForecastChart from './ForecastChart'
 import Modal from './Modal'
 import Presence from './Presence'
 import SegmentedControl from './SegmentedControl'
+import { createSpring, reducedMotion } from './motion'
 import { applyGhosts, approxMeasure, FONT, LABEL_GAP, LABEL_H, layoutGraph, PILL_H, refresh, settle, wake } from './graphLayout.js'
 import { compact, money, titleCase } from './format'
 import { post } from './api'
@@ -237,6 +238,16 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
   const [simVersion, setSimVersion] = useState(0)
   const [forecastOpen, setForecastOpen] = useState(false)
   const drag = useRef(null)
+  const pointers = useRef(new Map())
+  const liveView = useRef({ x: 0, y: 0, k: 1 })
+  const camera = useRef(null)
+  const coast = useRef(0)
+  const paintView = useCallback(next => { liveView.current = next; setView(next) }, [])
+  useLayoutEffect(() => {
+    camera.current = createSpring(liveView.current, paintView)
+    return () => { camera.current.destroy(); cancelAnimationFrame(coast.current) }
+  }, [paintView])
+  const stopMotion = () => { camera.current.stop(); cancelAnimationFrame(coast.current); coast.current = 0 }
   const fitted = useRef(false)
   const problemsOpen = useRef(false) // is the problems panel on screen? (read when framing the graph)
 
@@ -271,9 +282,11 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
   useEffect(() => {
     const sim = model.sim
     const step = () => { refresh(model, measure); redraw() }
+    document.fonts.ready.then(() => { if (!cancelled) { settle(model, measure); redraw() } })
+    let cancelled = false
     sim.on('tick.ui', step)
     sim.on('end.ui', () => { settle(model, measure); redraw() })
-    return () => { sim.on('tick.ui', null); sim.on('end.ui', null); sim.stop() }
+    return () => { cancelled = true; sim.on('tick.ui', null); sim.on('end.ui', null); sim.stop() }
   }, [model, simVersion])
 
   useEffect(() => {
@@ -287,9 +300,10 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
     const b = model.bounds
     const bw = b.x1 - b.x0, bh = b.y1 - b.y0
     // keep the graph out from under the "Needs attention" panel that sits on the left while it is open
-    const inset = problemsOpen.current ? 330 : 0
+    const inset = problemsOpen.current && size.w > 640 ? 330 : 0
     const k = clamp(Math.min((size.w - 56 - inset) / bw, (size.h - 56) / bh), 0.25, 1.6)
-    setView({ k, x: inset + (size.w - inset) / 2 - k * (b.x0 + bw / 2), y: size.h / 2 - k * (b.y0 + bh / 2) })
+    cancelAnimationFrame(coast.current)
+    camera.current.to({ k, x: inset + (size.w - inset) / 2 - k * (b.x0 + bw / 2), y: size.h / 2 - k * (b.y0 + bh / 2) })
   }, [model, size.w, size.h])
 
   useEffect(() => {
@@ -302,66 +316,147 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
     if (key && key !== fitFor.current && simVersion) { fitFor.current = key; fit() }
   }, [projection, simVersion, fit])
 
-  // Wheel zoom around the cursor (needs a non-passive listener to stop the page scrolling).
+  // Keep the graph within reach; beyond an edge, movement has increasing resistance.
+  const boundView = useCallback((v, rubber = false) => {
+    const b = model.bounds
+    const axis = (n, start, end, length) => {
+      const pad = Math.min(64, length * .15)
+      const a = pad - start * v.k, z = length - pad - end * v.k
+      const lo = Math.min(a, z), hi = Math.max(a, z)
+      const bounded = clamp(n, lo, hi), delta = n - bounded
+      return rubber ? bounded + delta * .55 / (1 + Math.abs(delta) / Math.max(1, length)) : bounded
+    }
+    return { k: v.k, x: axis(v.x, b.x0, b.x1, size.w), y: axis(v.y, b.y0, b.y1, size.h) }
+  }, [model, size.w, size.h])
+
+  // Wheel and button zoom retarget the live spring, keeping the point under the cursor fixed.
   useEffect(() => {
     const el = svg.current
-    const onWheel = (e) => {
+    const onWheel = e => {
       e.preventDefault()
-      const r = el.getBoundingClientRect()
+      cancelAnimationFrame(coast.current)
+      const r = el.getBoundingClientRect(), v = liveView.current
       const px = e.clientX - r.left, py = e.clientY - r.top
-      setView((v) => {
-        const k = clamp(v.k * Math.exp(-e.deltaY * 0.0015), 0.25, 3)
-        return { k, x: px - ((px - v.x) / v.k) * k, y: py - ((py - v.y) / v.k) * k }
-      })
+      const k = clamp(v.k * Math.exp(-e.deltaY * .0015), .25, 3)
+      camera.current.to(boundView({ k, x: px - (px - v.x) * k / v.k, y: py - (py - v.y) * k / v.k }))
     }
     el.addEventListener('wheel', onWheel, { passive: false })
     return () => el.removeEventListener('wheel', onWheel)
-  }, [])
+  }, [boundView])
 
-  const toGraph = (e) => {
+  const localPoint = e => {
     const r = svg.current.getBoundingClientRect()
-    return { x: (e.clientX - r.left - view.x) / view.k, y: (e.clientY - r.top - view.y) / view.k }
+    return { x: e.clientX - r.left, y: e.clientY - r.top }
   }
-
+  const toGraph = e => {
+    const p = localPoint(e), v = liveView.current
+    return { x: (p.x - v.x) / v.k, y: (p.y - v.y) / v.k }
+  }
+  const startPan = (p, time) => {
+    const v = liveView.current
+    return { sx: p.x, sy: p.y, vx: v.x, vy: v.y, moved: false, samples: [{ ...p, t: time }] }
+  }
   const onPointerDown = (e, node) => {
+    if (e.button !== 0) return
+    stopMotion()
     svg.current.setPointerCapture(e.pointerId)
-    drag.current = { node, sx: e.clientX, sy: e.clientY, vx: view.x, vy: view.y, moved: false }
-    if (!node) setPanning(true)
+    const p = localPoint(e), v = liveView.current
+    pointers.current.set(e.pointerId, p)
+    if (pointers.current.size >= 2) {
+      const old = drag.current
+      if (old?.node) { old.node.fx = null; old.node.fy = null; model.sim.alphaTarget(0) }
+      const [a, b] = [...pointers.current.values()]
+      const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2
+      drag.current = { pinch: true, moved: true, distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), k: v.k, gx: (cx - v.x) / v.k, gy: (cy - v.y) / v.k }
+      setPanning(true)
+    } else {
+      const g = toGraph(e)
+      drag.current = { ...startPan(p, e.timeStamp), node, grabX: node ? node.x - g.x : 0, grabY: node ? node.y - g.y : 0 }
+      if (node) { node.fx = node.x; node.fy = node.y }
+      setPanning(!node)
+    }
     e.stopPropagation()
   }
-  const onPointerMove = (e) => {
-    const d = drag.current
+  const onPointerMove = e => {
+    if (!pointers.current.has(e.pointerId)) return
+    const p = localPoint(e), d = drag.current
+    pointers.current.set(e.pointerId, p)
     if (!d) return
-    if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 3) d.moved = true
+    if (d.pinch) {
+      const [a, b] = [...pointers.current.values()]
+      if (!b) return
+      const k = clamp(d.k * Math.hypot(a.x - b.x, a.y - b.y) / d.distance, .25, 3)
+      camera.current.set(boundView({ k, x: (a.x + b.x) / 2 - d.gx * k, y: (a.y + b.y) / 2 - d.gy * k }, true))
+      return
+    }
+    if (Math.hypot(p.x - d.sx, p.y - d.sy) > 3) d.moved = true
     if (!d.moved) return
     if (d.node) {
       const g = toGraph(e)
-      d.node.fx = g.x
-      d.node.fy = g.y
+      d.node.fx = g.x + d.grabX
+      d.node.fy = g.y + d.grabY
       wake(model)
     } else {
-      setView((v) => ({ ...v, x: d.vx + e.clientX - d.sx, y: d.vy + e.clientY - d.sy }))
+      d.samples.push({ ...p, t: e.timeStamp })
+      d.samples = d.samples.filter(s => e.timeStamp - s.t <= 100)
+      camera.current.set(boundView({ ...liveView.current, x: d.vx + p.x - d.sx, y: d.vy + p.y - d.sy }, true))
     }
   }
-  const onPointerUp = () => {
+  const releasePan = (samples, time) => {
+    const current = liveView.current, bounded = boundView(current)
+    const first = samples[0], last = samples[samples.length - 1]
+    const dt = last && first ? last.t - first.t : 0
+    let vx = dt > 0 && time - last.t < 100 ? clamp((last.x - first.x) / dt, -3, 3) : 0
+    let vy = dt > 0 && time - last.t < 100 ? clamp((last.y - first.y) / dt, -3, 3) : 0
+    if (reducedMotion()) { camera.current.set(bounded); return }
+    if (current.x !== bounded.x || current.y !== bounded.y) { camera.current.to(bounded, { x: vx * 1000, y: vy * 1000 }); return }
+    if (Math.hypot(vx, vy) < .03) return
+    let previous = performance.now()
+    const tick = now => {
+      if (reducedMotion()) { camera.current.set(boundView(liveView.current)); return }
+      const elapsed = Math.min(64, now - previous), decay = .998 ** elapsed
+      previous = now
+      // Integral of the .998/ms decay; the total projection is v * .998 / (1 - .998).
+      const next = { ...liveView.current, x: liveView.current.x + vx * .998 * (1 - decay) / .002, y: liveView.current.y + vy * .998 * (1 - decay) / .002 }
+      vx *= decay; vy *= decay
+      const edge = boundView(next)
+      if (next.x !== edge.x || next.y !== edge.y) {
+        camera.current.set(boundView(next, true))
+        camera.current.to(edge, { x: vx * 1000, y: vy * 1000 })
+        coast.current = 0
+        return
+      }
+      camera.current.set(next)
+      if (Math.hypot(vx, vy) > .01) coast.current = requestAnimationFrame(tick)
+      else coast.current = 0
+    }
+    coast.current = requestAnimationFrame(tick)
+  }
+  const onPointerUp = e => {
+    if (!pointers.current.has(e.pointerId)) return
+    pointers.current.delete(e.pointerId)
     const d = drag.current
+    const cancelled = e.type === 'pointercancel' || e.type === 'lostpointercapture'
+    if (pointers.current.size) {
+      // A pinch can become a pan without resetting the view or jumping to the old finger.
+      drag.current = { ...startPan([...pointers.current.values()][0], e.timeStamp), moved: true }
+      return
+    }
     drag.current = null
     setPanning(false)
     if (!d) return
     if (d.node) {
-      d.node.fx = null
-      d.node.fy = null
-      model.sim.alphaTarget(0)
-      if (!d.moved) setSelected((cur) => (cur === d.node.id ? null : d.node.id))
-    } else if (!d.moved) setSelected(null)
+      d.node.fx = null; d.node.fy = null; model.sim.alphaTarget(0)
+      if (!cancelled && !d.moved) setSelected(cur => cur === d.node.id ? null : d.node.id)
+    } else if (cancelled || d.pinch) camera.current.to(boundView(liveView.current))
+    else if (d.moved) releasePan(d.samples, e.timeStamp)
+    else setSelected(null)
   }
-
-  const zoomBy = (f) =>
-    setView((v) => {
-      const k = clamp(v.k * f, 0.25, 3)
-      const cx = size.w / 2, cy = size.h / 2
-      return { k, x: cx - ((cx - v.x) / v.k) * k, y: cy - ((cy - v.y) / v.k) * k }
-    })
+  const zoomBy = f => {
+    stopMotion()
+    const v = liveView.current, k = clamp(v.k * f, .25, 3)
+    camera.current.to(boundView({ k, x: size.w / 2 - (size.w / 2 - v.x) * k / v.k, y: size.h / 2 - (size.h / 2 - v.y) * k / v.k }))
+  }
 
   // Hovering (or selecting) a node lights up its connections and dims the rest, as in Obsidian.
   const focus = hover ?? selected
@@ -387,6 +482,7 @@ function Canvas({ graph, projection, days, onChoice, onDecision }) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
+        onLostPointerCapture={onPointerUp}
       >
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
           {model.links.map((l) => {
