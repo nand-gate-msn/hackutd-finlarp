@@ -2,10 +2,11 @@ import logging
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .actions import ActionError, accept_savings_transfer, undo_rule
-from .config import settings
+from .config import SERVER_DIR, settings
 from .overview import build_overview, is_loaded
 
 logging.basicConfig(
@@ -63,3 +64,10 @@ def undo(rule_id: int):
 @app.get("/api/rules")
 def rules():
     return build_overview(7)["rules"]
+
+
+# Serve the built React app from this same process (production only: client/dist
+# exists once you've run `npm run build`). Mounted last so /api/* and /health win.
+_DIST = SERVER_DIR.parent / "client" / "dist"
+if _DIST.is_dir():
+    app.mount("/", StaticFiles(directory=_DIST, html=True), name="client")
