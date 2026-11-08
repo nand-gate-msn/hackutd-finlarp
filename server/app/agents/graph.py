@@ -29,6 +29,12 @@ def route_after_critic(state: FlowState) -> str:
     return "action" if needs_retry(state) else END
 
 
+def route_after_explainer(state: FlowState) -> str:
+    """A request the guard blocked gets its fixed message only: no savings suggestions, no review."""
+    guard = state.get("guard")
+    return END if guard is not None and guard.level == "blocked" else "action"
+
+
 def build_graph(deps: nodes.Deps):
     """Compile the workflow. `deps` supplies the model and tools (a fake in tests)."""
     graph = StateGraph(FlowState)
@@ -36,7 +42,7 @@ def build_graph(deps: nodes.Deps):
         graph.add_node(name, partial(getattr(nodes, name), deps=deps))
     graph.add_edge(START, "planner")
     graph.add_edge("planner", "explainer")
-    graph.add_edge("explainer", "action")
+    graph.add_conditional_edges("explainer", route_after_explainer, {"action": "action", END: END})
     graph.add_edge("action", "critic")
     graph.add_conditional_edges("critic", route_after_critic, {"action": "action", END: END})
     return graph.compile()

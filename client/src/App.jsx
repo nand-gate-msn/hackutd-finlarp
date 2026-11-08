@@ -151,7 +151,12 @@ export default function App() {
             <Stat label="Bills" value={data.totals.bills} tone="bad" />
           </section>
 
-          <GraphView projection={projection} refresh={healthTick} />
+          <GraphView
+            projection={projection}
+            refresh={healthTick}
+            onChoice={(choice) => setProjection((p) => (p ? { ...p, choice } : p))}
+            onDecision={() => setHealthTick((t) => t + 1)}
+          />
           <Metrics refresh={healthTick} />
 
           <h2 className="section-title">Accounts</h2>
@@ -168,7 +173,7 @@ export default function App() {
       )}
     </main>
     <aside className="sidebar">
-      <Advisor rules={rules} onDecision={() => setHealthTick((t) => t + 1)} onProject={setProjection} />
+      <Advisor rules={rules} choice={projection?.choice ?? null} onDecision={() => setHealthTick((t) => t + 1)} onProject={setProjection} />
     </aside>
     </div>
   )

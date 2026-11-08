@@ -93,7 +93,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .ln { width: 22px; height: 0; border-top: 3px solid; display: inline-block; }
 .ln.pay { border-color: var(--edge-pay); } .ln.fund { border-color: var(--good); } .ln.xfer { border-color: var(--accent); border-top-style: dashed; }
 
-.gcanvas { position: relative; height: 640px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg); background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 24px 24px; touch-action: none; }
+.gcanvas { position: relative; height: 760px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg); background-image: radial-gradient(var(--border) 1px, transparent 1px); background-size: 24px 24px; touch-action: none; }
 .gsvg { display: block; width: 100%; height: 100%; cursor: grab; user-select: none; }
 .gsvg.panning { cursor: grabbing; }
 
@@ -166,7 +166,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .health { grid-template-columns: 1fr; justify-items: center; }
   .pillars { width: 100%; }
   .flow { width: 100%; padding-left: 0; border-left: 0; border-top: 1px solid var(--border); padding-top: 14px; }
-  .gcanvas { height: 520px; }
+  .gcanvas { height: 620px; }
   .gdetail { width: calc(100% - 24px); max-height: 45%; top: auto; bottom: 12px; }
 }
 
@@ -357,3 +357,35 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .gcard-expand:hover rect, .gcard-expand:focus-visible rect { stroke: var(--accent); }
 .gcard-expand:hover path, .gcard-expand:focus-visible path { stroke: var(--accent); }
 .gcard-expand:focus-visible { outline: none; }
+
+/* ================= problems flagged by the risk math ================= */
+.gn.flagged circle { stroke: var(--bad); stroke-width: 3; filter: drop-shadow(0 0 7px color-mix(in srgb, var(--bad) 70%, transparent)); }
+.gn.flagged.ghost circle { fill: color-mix(in srgb, var(--bad) 18%, var(--bg)); stroke-dasharray: 4 3; }
+.gflag circle { fill: var(--bad); stroke: var(--card); stroke-width: 2; }
+.gflag text { fill: #fff; font: 800 12px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.gedge.flagged { --ec: var(--bad); }
+.gedge.flagged .gl { opacity: 0.85; }
+.gflags { position: absolute; top: 128px; left: 12px; z-index: 4; width: min(300px, calc(100% - 24px)); max-height: calc(100% - 200px); overflow: auto; background: var(--card); border: 1px solid var(--bad); border-radius: 12px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.25); }
+.gflags ul { list-style: none; margin: 0; padding: 0 6px 8px; display: flex; flex-direction: column; gap: 6px; }
+.gflags-head { width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 12px; font: inherit; font-weight: 700; color: var(--text); background: transparent; border: 0; cursor: pointer; text-align: left; }
+.gflags-head em { font-style: normal; padding: 0 7px; font-size: 0.8rem; color: #fff; background: var(--bad); border-radius: 999px; }
+.gflags-chev { margin-left: auto; color: var(--muted); }
+.gflags-dot { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; background: var(--bad); font-weight: 800; font-size: 0.8rem; }
+.gflag-item { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; font: inherit; font-size: 0.82rem; line-height: 1.35; text-align: left; color: var(--text); background: color-mix(in srgb, var(--bad) 9%, var(--card)); border: 1px solid color-mix(in srgb, var(--bad) 35%, var(--border)); border-radius: 9px; cursor: pointer; }
+.gflag-item span { color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.gflag-item:hover { border-color: var(--bad); }
+.gflag-item:focus-visible, .gflags-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.problem { margin: 10px 0; padding: 11px 12px; border: 1px solid var(--bad); border-radius: 10px; background: color-mix(in srgb, var(--bad) 8%, var(--card)); display: flex; flex-direction: column; gap: 8px; }
+.problem-head { display: flex; align-items: center; gap: 8px; }
+.problem-sev { padding: 1px 8px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #fff; background: var(--bad); border-radius: 999px; }
+.problem.sev-watch .problem-sev { background: var(--ok); color: #1c2430; } /* all flagged items are red; only the pill tells Watch from High risk */
+.problem-why { margin: 0; font-size: 0.86rem; line-height: 1.45; }
+.problem .btn { align-self: flex-start; }
+.fixes { margin: 0; }
+.gdetail { width: 330px; }
+/* keep the forecast toggle clear of the details panel */
+.gforecast { right: auto; left: 58px; }
+
+/* suggestion cards inside the graph's details panel are full cards, not the panel's three-column list rows */
+.gdetail li.proposal { display: flex; flex-direction: column; grid-template-columns: none; padding: 4px; border-bottom: 1px solid var(--border); }
+.gdetail ul.fixes { display: flex; flex-direction: column; gap: 8px; }

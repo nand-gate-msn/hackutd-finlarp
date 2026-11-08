@@ -312,6 +312,17 @@ def risk(scenario: dict | ScenarioInput, conn: sqlite3.Connection | None = None)
     return RiskResult(flags=flags, overall=max((f.status for f in flags), key=_ORDER.__getitem__))
 
 
+def monthly_income_cents(conn: sqlite3.Connection | None = None) -> int:
+    """Typical monthly income from the customer's own data (0 if none is loaded)."""
+    try:
+        if conn is None:
+            with work_db() as c:
+                return monthly_income_cents(c)
+        return _load(conn)["monthly_income_cents"]
+    except ToolError:
+        return 0
+
+
 # ---------------------------------------------------------------- LLM-facing
 
 _SCENARIO_PARAMS = {

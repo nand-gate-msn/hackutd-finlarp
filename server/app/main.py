@@ -10,7 +10,8 @@ from pydantic import BaseModel, Field
 from .actions import ActionError, accept_savings_transfer, revert_to, undo_rule
 from .agents import nodes
 from .agents.graph import AGENTS, stream_flow
-from .agents.present import present, present_health
+from .agents.fix import UnknownFinding, suggest_fixes
+from .agents.present import present, present_findings, present_health, present_proposals
 from .agents.state import merge_update
 from .config import SERVER_DIR, settings
 from .db import work_db
@@ -189,6 +190,30 @@ def revert(req: RevertRequest):
         return _rerun(req.scenario, lambda: revert_to(req.to_rule_id))
     except ActionError as exc:
         raise HTTPException(exc.status_code, str(exc)) from exc
+
+
+class FixRequest(BaseModel):
+    finding_id: str = Field(min_length=1, max_length=120, examples=["low_balance:obligation:bill_1"])
+    scenario: ScenarioInput | None = None  # the what-if the customer was looking at, if any
+
+
+@app.post("/api/fix")
+async def fix(req: FixRequest, deps: nodes.Deps = Depends(get_deps)):
+    """'Suggest fixes' for one red flag on the graph: savings moves aimed at that problem, measured by our code."""
+    if not is_loaded():
+        raise HTTPException(503, "No customer data loaded. Run: python scripts/load_customer.py")
+    try:
+        out = await suggest_fixes(req.finding_id, req.scenario or NONE_SCENARIO, deps)
+    except UnknownFinding as exc:
+        raise HTTPException(404, "That problem is no longer flagged for this question.") from exc
+    except ToolError as exc:
+        raise HTTPException(503, str(exc)) from exc
+    return {
+        "finding": present_findings([out["finding"]])[0],
+        "proposals": present_proposals(out["proposals"], out["health_after"]),
+        "ai_unavailable": out["ai_unavailable"],
+        "dropped": out["dropped"],
+    }
 
 
 @app.get("/api/rules")

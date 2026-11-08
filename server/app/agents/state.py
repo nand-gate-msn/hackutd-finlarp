@@ -21,6 +21,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..config import settings
 from ..factpack_schema import FactPack, RuleFact
+from ..findings import Finding
+from .guard import Guard
 from ..health import HealthResult, HealthSnapshot
 from ..projection import Preview
 from ..tools import RiskResult, ScenarioInput, SimulationResult
@@ -62,12 +64,15 @@ class FlowState(TypedDict, total=False):
     fact_pack: FactPack
 
     # --- Planner
+    guard: Guard  # code check of the typed request: ok / extreme / blocked (see guard.py)
     question: str  # user_request with private names/IDs removed: the only form that reaches a model
     scenario: ScenarioInput  # what-if the customer asked about
     simulation: SimulationResult  # tool: forecast with and without the scenario
     risk: RiskResult  # tool: overdraft / payment-too-big / thin-buffer flags
     health: HealthResult  # tool: overall financial health now vs after the scenario
     preview: Preview  # UI-ONLY: projected graph node + forecast series for the what-if
+    findings: list[Finding]  # UI + fix flow: problem spots to paint red on the graph (never in a normal prompt)
+    finding: Finding  # set only by the fix flow: the one problem the Action agent is asked to ease
 
     # --- Explainer, Action
     explanation: Explanation

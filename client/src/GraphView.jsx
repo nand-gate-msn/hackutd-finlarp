@@ -3,13 +3,15 @@ import ForecastChart from './ForecastChart'
 import Modal from './Modal'
 import { applyGhosts, approxMeasure, FONT, LABEL_GAP, LABEL_H, layoutGraph, PILL_H, refresh, settle, wake } from './graphLayout.js'
 import { compact, money, titleCase } from './format'
+import { post } from './api'
+import { pct } from './format'
+import { Proposal } from './Suggestions'
 
 const TYPE_LABEL = {
   income: 'Income', account: 'Account', obligation: 'Bill', category: 'Spending',
   scenario: 'Projected', rule: 'Savings rule', forecast: 'Forecast',
 }
-const CARD = { w: 260, h: 182 }
-const LAYER_LABEL = { baseline: 'No change', scenario: 'With the what-if', suggestion: 'With the suggestion*' }
+const LAYER_LABEL = { baseline: 'No change', scenario: 'With the what-if', suggestion: 'With the suggestion' }
 const WINDOWS = [30, 90, 180, 365]
 
 // Text widths come from the browser so the layout reserves exactly the room the labels need.
@@ -49,11 +51,6 @@ function ghostGraph(projection, graph, days) {
     pv.nodes.forEach((n) => nodes.push({ id: n.id, type: n.type, label: n.label, in_cents: scale(n.monthly_cents), out_cents: scale(n.monthly_cents) }))
     pv.edges.forEach((e) => edges.push({ source: e.source, target: e.target, type: e.type, tag: e.tag, amount_cents: scale(e.monthly_cents), count: 0 }))
   }
-  const checking = graph.nodes.find((n) => n.type === 'account' && n.account_type === 'Checking')
-  if (checking) {
-    nodes.push({ id: 'ghost:forecast', type: 'forecast', label: 'Projected balance', shape: 'card', ...CARD, in_cents: 0, out_cents: 0 })
-    edges.push({ source: checking.id, target: 'ghost:forecast', type: 'forecast', tag: 'simulated', amount_cents: 0, count: 0 })
-  }
   return { nodes, edges }
 }
 
@@ -66,46 +63,71 @@ function layersOf(projection) {
   return out
 }
 
-/** The shared forecast card drawn as a node: fan chart + where each line ends. */
-function ForecastCard({ n, layers, onExpand }) {
-  const days = layers[0]?.band.p50.length ?? 0
-  const top = -n.h / 2
+/** One flagged problem: why it is red, and on request, savings moves that ease it (the AI sees only an anonymous summary). */
+function Problem({ f, input, choice, onChoice, onDecision }) {
+  const [state, setState] = useState({ phase: 'idle', proposals: [], note: null }) // idle | busy | done | error
+  const [notice, setNotice] = useState(null)
+
+  const suggest = async () => {
+    setState({ phase: 'busy', proposals: [], note: null })
+    try {
+      const r = await post('/api/fix', { finding_id: f.id, scenario: input })
+      const note = r.ai_unavailable
+        ? 'The AI could not be reached, so there are no suggestions right now. Try again in a moment.'
+        : r.proposals.length === 0
+          ? 'No safe savings move would help with this one. The problem needs a change outside the app, such as how or when the bill is paid.'
+          : null
+      setState({ phase: 'done', proposals: r.proposals, note })
+    } catch (err) {
+      setState({ phase: 'error', proposals: [], note: err.message })
+    }
+  }
+  const accepted = (resp, p) => {
+    onChoice(null)
+    setNotice(`Accepted “Save ${p.percent}% of each paycheck”. Overdraft chance ${pct(resp.forecast.before.scenario.share_below_zero)} → ${pct(resp.forecast.after.scenario.share_below_zero)}.`)
+    setState((s) => ({ ...s, proposals: s.proposals.filter((x) => x !== p) }))
+    onDecision?.()
+  }
+
   return (
-    <>
-      <rect className="gcard" x={-n.w / 2} y={top} width={n.w} height={n.h} rx={12} />
-      <text className="gcard-title" x={-n.w / 2 + 12} y={top + 18}>Checking balance · next {days} days</text>
-      <g
-        className="gcard-expand"
-        role="button"
-        tabIndex={0}
-        aria-label="Open the forecast full size"
-        transform={`translate(${n.w / 2 - 30} ${top + 6})`}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={onExpand}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onExpand())}
-      >
-        <title>Open full size</title>
-        <rect width={22} height={22} rx={6} />
-        <path d="M6.5 9.5V6.5h3M15.5 9.5V6.5h-3M6.5 12.5v3h3M15.5 12.5v3h-3" />
-      </g>
-      <ForecastChart layers={layers} x={-n.w / 2 + 8} y={top + 26} width={n.w - 16} height={n.h - 26 - 32 - 14 * layers.length} small />
-      {layers.some((l) => l.key === 'suggestion') && (
-        <text className="gcard-note" x={-n.w / 2 + 12} y={n.h / 2 - 8}>*lower in checking: the difference is in savings</text>
+    <section className={`problem sev-${f.severity}`} aria-label={f.title}>
+      <div className="problem-head">
+        <span className="problem-sev">{f.severity === 'risk' ? 'High risk' : 'Watch'}</span>
+        <b>{f.title}</b>
+      </div>
+      <p className="problem-why">{f.reason}</p>
+      {state.phase === 'idle' && (
+        <button className="btn sm" onClick={suggest}>Suggest fixes</button>
       )}
-      {layers.map((l, i) => (
-        <g key={l.key} transform={`translate(${-n.w / 2 + 12} ${n.h / 2 - 24 - 14 * (layers.length - 1 - i)})`}>
-          <rect className={`gcard-swatch f-${l.key}`} x={0} y={-7} width={10} height={4} rx={2} />
-          <text className="gcard-legend" x={16} y={-3}>{l.label}</text>
-          <text className="gcard-value" x={n.w - 24} y={-3} textAnchor="end">{compact(l.band.p50[l.band.p50.length - 1] / 100)}</text>
-        </g>
-      ))}
-    </>
+      {state.phase === 'busy' && <p className="muted small" role="status">Looking for savings moves that would help…</p>}
+      {state.note && <p className={`small ${state.phase === 'error' ? 'error-text' : 'muted'}`}>{state.note}</p>}
+      {state.phase !== 'idle' && state.phase !== 'busy' && (
+        <button className="btn ghost sm" onClick={suggest}>{state.phase === 'error' ? 'Try again' : 'Suggest again'}</button>
+      )}
+      {notice && <p className="small saved" role="status">{notice}</p>}
+      {state.proposals.length > 0 && (
+        <ul className="proposals fixes">
+          {state.proposals.map((p) => (
+            <Proposal
+              key={`${p.from_alias}-${p.to_alias}-${p.percent}`}
+              p={p}
+              scenario={input}
+              base={null}
+              picked={choice === p.preview}
+              onPick={() => onChoice(choice === p.preview ? null : p.preview)}
+              onAccepted={accepted}
+            />
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }
 
-function Details({ graph, id, onClose }) {
+function Details({ graph, id, onClose, flags = [], input, choice, onChoice, onDecision }) {
   const node = graph.nodes.find((n) => n.id === id)
-  if (!node) return null
+  const ghost = !node
+  if (!node && !flags.length) return null
   const label = (nid) => titleCase(graph.nodes.find((n) => n.id === nid)?.label)
   const incoming = graph.edges.filter((e) => e.target === id)
   const outgoing = graph.edges.filter((e) => e.source === id)
@@ -119,9 +141,12 @@ function Details({ graph, id, onClose }) {
   return (
     <aside className="gdetail">
       <button className="gclose" onClick={onClose} aria-label="Close details">×</button>
-      <span className="gnode-kind">{TYPE_LABEL[node.type]}</span>
-      <h4>{titleCase(node.label)}</h4>
-      {node.type === 'obligation' && node.bill_cents != null && (
+      <span className="gnode-kind">{ghost ? 'Projected' : TYPE_LABEL[node.type]}</span>
+      <h4>{ghost ? 'This decision' : titleCase(node.label)}</h4>
+      {flags.map((f) => (
+        <Problem key={f.id} f={f} input={input} choice={choice} onChoice={onChoice} onDecision={onDecision} />
+      ))}
+      {node?.type === 'obligation' && node.bill_cents != null && (
         <p className="muted">
           {money.format(node.bill_cents / 100)} due on day {node.due_day} each month
         </p>
@@ -178,6 +203,7 @@ function ForecastModal({ layers, start, onClose }) {
         <p className="muted small">
           Each line is the median outcome across 5,000 simulated futures; the shaded band is the likely range
           (10th to 90th percentile). Below the red $0 line is an overdraft. Hover to read any day.
+          {layers.some((l) => l.key === 'suggestion') && ' The suggestion line sits lower in checking because that money moves to savings.'}
         </p>
         <div className="fmodal-chart" ref={body}>
           <ForecastChart layers={visible} width={box.w} height={box.h} start={start} />
@@ -186,7 +212,7 @@ function ForecastModal({ layers, start, onClose }) {
           {layers.map((l) => (
             <button key={l.key} className={`flegend ${hidden.has(l.key) ? 'off' : ''}`} aria-pressed={!hidden.has(l.key)} onClick={() => toggle(l.key)}>
               <i className={`fswatch-dot f-${l.key}`} />
-              <span>{l.label.replace('*', '')}</span>
+              <span>{l.label}</span>
               <b>{compact(l.band.p50[l.band.p50.length - 1] / 100)}</b>
             </button>
           ))}
@@ -196,7 +222,7 @@ function ForecastModal({ layers, start, onClose }) {
   )
 }
 
-function Canvas({ graph, projection, days }) {
+function Canvas({ graph, projection, days, onChoice, onDecision }) {
   const wrap = useRef(null)
   const svg = useRef(null)
   const [size, setSize] = useState({ w: 0, h: 0 })
@@ -210,6 +236,7 @@ function Canvas({ graph, projection, days }) {
   const [forecastOpen, setForecastOpen] = useState(false)
   const drag = useRef(null)
   const fitted = useRef(false)
+  const problemsOpen = useRef(false) // is the problems panel on screen? (read when framing the graph)
 
   // The layout is computed once per dataset; dragging mutates it in place and we just redraw.
   const model = useMemo(() => layoutGraph(graph, measure), [graph])
@@ -218,6 +245,20 @@ function Canvas({ graph, projection, days }) {
   const ghosts = useMemo(() => ghostGraph(projection, graph, days), [projection, graph, days])
   const layers = useMemo(() => layersOf(projection), [projection])
   const open = forecastOpen && layers.length > 0 // a new question with no forecast closes the modal
+
+  // Problem spots found by the math: node id -> findings. Only nodes that are on screen are painted.
+  const flagged = useMemo(() => {
+    const map = new Map()
+    for (const f of projection?.findings ?? []) {
+      for (const id of f.node_ids) map.set(id, [...(map.get(id) ?? []), f])
+    }
+    return map
+  }, [projection])
+  const flagList = (projection?.findings ?? []).filter((f) => f.node_ids.some((id) => model.byId.has(id)))
+  const [flagsOpen, setFlagsOpen] = useState(true)
+  useEffect(() => {
+    problemsOpen.current = flagsOpen && flagList.length > 0 // read when the graph is framed
+  })
   const fitFor = useRef(null)
   useEffect(() => {
     applyGhosts(model, ghosts, measure)
@@ -243,8 +284,10 @@ function Canvas({ graph, projection, days }) {
     if (!size.w) return
     const b = model.bounds
     const bw = b.x1 - b.x0, bh = b.y1 - b.y0
-    const k = clamp(Math.min((size.w - 56) / bw, (size.h - 56) / bh), 0.25, 1.6)
-    setView({ k, x: size.w / 2 - k * (b.x0 + bw / 2), y: size.h / 2 - k * (b.y0 + bh / 2) })
+    // keep the graph out from under the "Needs attention" panel that sits on the left while it is open
+    const inset = problemsOpen.current ? 330 : 0
+    const k = clamp(Math.min((size.w - 56 - inset) / bw, (size.h - 56) / bh), 0.25, 1.6)
+    setView({ k, x: inset + (size.w - inset) / 2 - k * (b.x0 + bw / 2), y: size.h / 2 - k * (b.y0 + bh / 2) })
   }, [model, size.w, size.h])
 
   useEffect(() => {
@@ -350,7 +393,8 @@ function Canvas({ graph, projection, days }) {
             const tip = l.p2
             const bx = tip.x - l.ux * l.arrow, by = tip.y - l.uy * l.arrow
             const end = arrow ? { x: tip.x - l.ux * l.arrow * 0.85, y: tip.y - l.uy * l.arrow * 0.85 } : tip
-            const cls = `gedge ${l.raw.type} ${l.raw.tag !== 'observed' ? 'projected' : ''} ${focus ? (touches(l) ? 'hot' : 'dim') : ''}`
+            const bad = (l.s.ghost && flagged.has(l.s.id)) || (l.t.ghost && flagged.has(l.t.id))
+            const cls = `gedge ${l.raw.type} ${l.raw.tag !== 'observed' ? 'projected' : ''} ${bad ? 'flagged' : ''} ${focus ? (touches(l) ? 'hot' : 'dim') : ''}`
             return (
               <g key={key} className={cls}>
                 <line className="gl" x1={l.p1.x} y1={l.p1.y} x2={end.x} y2={end.y} strokeWidth={l.width} />
@@ -393,20 +437,23 @@ function Canvas({ graph, projection, days }) {
           {model.nodes.map((n) => (
             <g
               key={n.id}
-              className={`gn gn-${n.data.type} ${n.ghost || n.data.tag === 'proposed' ? 'ghost' : ''} ${near && !near.has(n.id) ? 'dim' : ''} ${n.id === selected ? 'selected' : ''}`}
+              className={`gn gn-${n.data.type} ${n.ghost || n.data.tag === 'proposed' ? 'ghost' : ''} ${flagged.has(n.id) ? `flagged sev-${flagged.get(n.id)[0].severity}` : ''} ${near && !near.has(n.id) ? 'dim' : ''} ${n.id === selected ? 'selected' : ''}`}
               transform={`translate(${n.x} ${n.y})`}
               onPointerDown={(e) => onPointerDown(e, n)}
               onPointerEnter={() => setHover(n.id)}
               onPointerLeave={() => setHover(null)}
             >
-              <title>{`${n.shape === 'card' ? n.data.label : titleCase(n.data.label)} · ${TYPE_LABEL[n.data.type]}`}</title>
-              {n.shape === 'card' ? <ForecastCard n={n} layers={layers} onExpand={() => setForecastOpen(true)} /> : <circle r={n.r} />}
+              <title>{`${titleCase(n.data.label)} · ${TYPE_LABEL[n.data.type]}${flagged.has(n.id) ? ` · ${flagged.get(n.id).map((f) => f.title).join('; ')}` : ''}`}</title>
+              <circle r={n.r} />
+              {flagged.has(n.id) && (
+                <g className="gflag" transform={`translate(${n.r * 0.75} ${-n.r * 0.75})`}>
+                  <circle r={9} /><text y={0.5}>!</text>
+                </g>
+              )}
               {n.side === 'center' && (
                 <rect className="gbadge" x={-n.lw / 2 - 4} y={-LABEL_H / 2 - 2} width={n.lw + 8} height={LABEL_H + 4} rx={(LABEL_H + 4) / 2} />
               )}
-              {n.shape !== 'card' && (
-                <text className={`gtitle side-${n.side}`} {...titlePos(n)} fontSize={FONT}>{n.title}</text>
-              )}
+              <text className={`gtitle side-${n.side}`} {...titlePos(n)} fontSize={FONT}>{n.title}</text>
             </g>
           ))}
         </g>
@@ -430,12 +477,44 @@ function Canvas({ graph, projection, days }) {
         <button onClick={fit} aria-label="Fit to screen">⤢</button>
       </div>
       <p className="ghint">Drag a node to pull its neighbours · scroll to zoom · drag the background to pan · hover to trace</p>
-      {selected && <Details graph={graph} id={selected} onClose={() => setSelected(null)} />}
+      {flagList.length > 0 && (
+        <aside className="gflags" aria-label="Problems found">
+          <button className="gflags-head" aria-expanded={flagsOpen} onClick={() => setFlagsOpen((v) => !v)}>
+            <span className="gflags-dot" aria-hidden="true">!</span>
+            Needs attention <em>{flagList.length}</em>
+            <span className="gflags-chev" aria-hidden="true">{flagsOpen ? '▾' : '▸'}</span>
+          </button>
+          {flagsOpen && (
+            <ul>
+              {flagList.map((f) => (
+                <li key={f.id}>
+                  <button className={`gflag-item sev-${f.severity}`} onClick={() => setSelected(f.node_ids.find((id) => model.byId.has(id)))}>
+                    <b>{f.title}</b>
+                    <span>{f.reason}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+      )}
+      {selected && (
+        <Details
+          graph={graph}
+          id={selected}
+          onClose={() => setSelected(null)}
+          flags={flagged.get(selected) ?? []}
+          input={projection?.input ?? null}
+          choice={projection?.choice ?? null}
+          onChoice={onChoice}
+          onDecision={onDecision}
+        />
+      )}
     </div>
   )
 }
 
-export default function GraphView({ projection = null, refresh: refreshKey = 0 }) {
+export default function GraphView({ projection = null, refresh: refreshKey = 0, onChoice, onDecision }) {
   const [days, setDays] = useState(90)
   const [graph, setGraph] = useState(null)
   const [error, setError] = useState(null)
@@ -485,7 +564,7 @@ export default function GraphView({ projection = null, refresh: refreshKey = 0 }
       {error && <p className="state error">Couldn't load graph: {error}</p>}
       {graph && graph.nodes.length === 0 && <p className="state">No activity in this window.</p>}
       {graph && graph.nodes.length > 0 && (
-        <Canvas key={graph.period.end + graph.period.days} graph={graph} projection={projection} days={days} />
+        <Canvas key={graph.period.end + graph.period.days} graph={graph} projection={projection} days={days} onChoice={onChoice} onDecision={onDecision} />
       )}
       {!graph && !error && <p className="state">Loading graph…</p>}
     </section>

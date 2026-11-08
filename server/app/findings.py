@@ -23,7 +23,7 @@ from pydantic import BaseModel, ConfigDict
 
 from .db import work_db
 from .engine_firewall.overallFinHealth import ASSUMED_TAX_RATE, HOUSING_RATIO, TOTAL_DEBT_RATIO
-from .tools import RiskResult, ScenarioInput, SimulationResult, _load
+from .tools import ScenarioInput, SimulationResult, _load
 
 # provisional thresholds, for Finance to tune
 LATE_RATE_WATCH = 0.05  # late in at least 5% of payments, or ...
@@ -89,15 +89,23 @@ def late_payments(conn: sqlite3.Connection) -> list[Finding]:
 
 # ------------------------------------------------------------------ guidelines
 
-def over_guideline(data: dict, conn: sqlite3.Connection) -> list[Finding]:
-    """The same ratios the health score uses (gross income = net / (1 - tax)), on today's data."""
+def _ratios(data: dict) -> tuple[float, float] | None:
+    """(housing, debt) as shares of GROSS income: the same basis the health score and the guidelines use."""
     rows = data["rows"]
     income = sum(r["amount_cents"] for r in rows if r["kind"] == "deposit" and r["label"] != "interest")
     if income <= 0:
-        return []
+        return None
     gross = income / (1 - ASSUMED_TAX_RATE)
     spend = lambda group: -sum(r["amount_cents"] for r in rows if r["amount_cents"] < 0 and r["group_name"] == group)  # noqa: E731
-    housing, debt = spend("Housing") / gross, spend("Debt") / gross
+    return spend("Housing") / gross, spend("Debt") / gross
+
+
+def over_guideline(data: dict, conn: sqlite3.Connection) -> list[Finding]:
+    """Housing / housing+debt above the guidelines, on today's data."""
+    ratios = _ratios(data)
+    if ratios is None:
+        return []
+    housing, debt = ratios
     total = housing + debt
     biggest = lambda group: conn.execute(  # noqa: E731
         "SELECT alias FROM obligations WHERE group_name = ? ORDER BY amount_cents DESC LIMIT 1", (group,)
@@ -178,17 +186,27 @@ def low_balance(data: dict) -> list[Finding]:
 
 # ------------------------------------------------------------------ the decision itself
 
-def decision(sc: ScenarioInput, sim: SimulationResult, rsk: RiskResult) -> list[Finding]:
+def decision(sc: ScenarioInput, sim: SimulationResult, data: dict) -> list[Finding]:
     """Only what the what-if CAUSES: a measure that is not already red without it."""
     if sc.kind == "none" or sc.payment_ratio_of_income <= 0:
         return []
-    flags = {f.flag: f for f in rsk.flags}
     reasons, anon, worst = [], [], 0
-    load = flags["payment_too_big"]
-    if load.status != "ok":
-        reasons.append(f"it takes housing and debt to {load.value:.0%} of income (guideline {TOTAL_GUIDELINE:.0%})")
-        anon.append(f"housing and debt would be {load.value:.0%} of income (guideline {TOTAL_GUIDELINE:.0%})")
-        worst = max(worst, _ORDER[load.status])
+
+    # housing + debt as a share of gross income, before and after (same basis as over_guideline)
+    ratios = _ratios(data)
+    if ratios:
+        before = sum(ratios)
+        if sc.kind in ("car_loan", "rent_increase"):  # the payment is a share of NET income: payment / gross
+            after = before + (1 - ASSUMED_TAX_RATE) * sc.payment_ratio_of_income
+        elif sc.kind == "income_drop":
+            after = before / max(1e-6, 1 - sc.payment_ratio_of_income)
+        else:
+            after = before
+        if after > TOTAL_GUIDELINE and after > before + 0.005:
+            reasons.append(f"it takes housing and debt from {before:.0%} to {after:.0%} of income (guideline {TOTAL_GUIDELINE:.0%})")
+            anon.append(f"housing and debt would go from {before:.0%} to {after:.0%} of income (guideline {TOTAL_GUIDELINE:.0%})")
+            worst = max(worst, 2 if after > (TOTAL_GUIDELINE + 0.50) / 2 else 1)
+
     if sim.added_share_below_zero >= 0.02:
         reasons.append(f"it adds {sim.added_share_below_zero:.0%} to the chance of overdraft")
         anon.append(f"the overdraft chance rises by {sim.added_share_below_zero:.0%}")
@@ -213,14 +231,12 @@ def decision(sc: ScenarioInput, sim: SimulationResult, rsk: RiskResult) -> list[
 
 # ------------------------------------------------------------------ entry point
 
-def find_problems(
-    sc: ScenarioInput, sim: SimulationResult, rsk: RiskResult, conn: sqlite3.Connection | None = None
-) -> list[Finding]:
+def find_problems(sc: ScenarioInput, sim: SimulationResult, conn: sqlite3.Connection | None = None) -> list[Finding]:
     """Everything the graph should paint red for this question, worst first."""
     if conn is None:
         with work_db() as c:
-            return find_problems(sc, sim, rsk, c)
+            return find_problems(sc, sim, c)
     data = _load(conn)
-    found = [*decision(sc, sim, rsk), *late_payments(conn), *over_guideline(data, conn), *low_balance(data)]
+    found = [*decision(sc, sim, data), *late_payments(conn), *over_guideline(data, conn), *low_balance(data)]
     found.sort(key=lambda f: -_ORDER[f.severity])
     return found[:MAX_FINDINGS]

@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { post } from './api'
 import AcceptedChanges from './AcceptedChanges'
+import { pct, pts, ruleKey, score } from './format'
+import { Proposal } from './Suggestions'
 
 // The four agents, in order, with what the customer sees while each one works.
 const STEPS = [
@@ -11,11 +13,8 @@ const STEPS = [
 ]
 const IDEAS = ['Can I afford a car?', 'What if my rent goes up?', 'What if I lose some income?', 'I want a new subscription']
 
-const pct = (x) => (x > 0 && x < 0.005 ? '<1%' : `${Math.round(x * 100)}%`)
 const TONE = { ok: 'good', watch: 'ok', risk: 'bad' }
 const HEALTH_TONE = { Healthy: 'good', Okay: 'ok', 'Needs attention': 'warn', 'At risk': 'bad' }
-const pts = (n) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(Math.round(n * 10) / 10)}`
-const score = (x) => Math.round(x)
 const FLAG = { overdraft: 'Overdraft', payment_too_big: 'Payment vs. income', low_buffer: 'Cash cushion' }
 
 // Reads a Server-Sent Events stream from fetch (EventSource can't POST) and calls onEvent(name, data).
@@ -94,49 +93,11 @@ function Health({ h }) {
   )
 }
 
-const ruleKey = (r) => `${r.from_alias}|${r.to_alias}|${Number(r.percent)}`
-
-function Proposal({ p, scenario, base, picked, onPick, onAccepted }) {
-  const [state, setState] = useState({ phase: 'idle' }) // idle | busy | error
-  const accept = async () => {
-    setState({ phase: 'busy' })
-    try {
-      const r = await post('/api/accept', { from_alias: p.from_alias, to_alias: p.to_alias, percent: p.percent, scenario })
-      onAccepted(r, p)
-    } catch (err) {
-      setState({ phase: 'error', message: err.message })
-    }
-  }
-  return (
-    <li className={`proposal ${picked ? 'picked' : ''}`}>
-      {/* The card itself is the button: selecting it previews the change on the graph. */}
-      <button type="button" className="pick" aria-pressed={picked} onClick={onPick}>
-        <span className="pick-head">
-          <b>Move {p.percent}% of each paycheck</b>
-          <span className="muted"> from {p.from_label} to {p.to_label}</span>
-        </span>
-        <span className="pick-reason">{p.reason}</span>
-        {p.forecast && (
-          <span className="muted small">
-            Overdraft chance with this change: {pct(p.forecast.scenario.share_below_zero)} (now {pct(base)})
-            {p.health && ` · health ${score(p.health.score)} (${pts(Math.round(p.health.change_vs_scenario * 10) / 10)})`}
-          </span>
-        )}
-        <span className="pick-hint">{picked ? '● Shown on the graph' : 'Show on the graph'}</span>
-      </button>
-      <div className="proposal-actions">
-        <button className="btn sm" onClick={accept} disabled={state.phase === 'busy'}>
-          {state.phase === 'busy' ? 'Saving…' : 'Accept'}
-        </button>
-      </div>
-      {state.phase === 'error' && <p className="error-text">{state.message}</p>}
-    </li>
-  )
-}
-
-function Result({ r, rules, onProject, onAccepted }) {
+function Result({ r, rules, choice, onProject, onAccepted }) {
   const { forecast: f } = r
-  const [picked, setPicked] = useState(null)
+  // which suggestion is shown on the graph: derived, so a pick made from the graph's problem panel can't go stale
+  const picked = r.proposals.findIndex((p) => p.preview === choice)
+  const project = (c) => onProject?.({ scenario: r.preview, choice: c, findings: r.findings, input: r.scenario })
   const [showOthers, setShowOthers] = useState(false)
   const withWhatIf = r.scenario.kind !== 'none'
 
@@ -149,15 +110,10 @@ function Result({ r, rules, onProject, onAccepted }) {
   const listShown = !anyAccepted || showOthers
 
   // Selecting a suggestion (or clearing it) redraws the projected part of the money-flow graph.
-  const pick = (i) => {
-    const next = picked === i ? null : i
-    setPicked(next)
-    onProject?.({ scenario: r.preview, choice: next == null ? null : r.proposals[next].preview })
-  }
+  const pick = (i) => project(picked === i ? null : r.proposals[i].preview)
   const accepted = (resp, p) => {
-    setPicked(null)
     setShowOthers(false)
-    onProject?.({ scenario: r.preview, choice: null })
+    project(null)
     onAccepted(resp, p)
   }
 
@@ -223,7 +179,7 @@ function Result({ r, rules, onProject, onAccepted }) {
   )
 }
 
-export default function Advisor({ rules = [], onDecision, onProject }) {
+export default function Advisor({ rules = [], choice = null, onDecision, onProject }) {
   const [text, setText] = useState('')
   const [running, setRunning] = useState(false)
   const [steps, setSteps] = useState({})
@@ -269,7 +225,8 @@ export default function Advisor({ rules = [], onDecision, onProject }) {
           })
         } else if (name === 'result') {
           setResult({ ...data, received: Date.now() })
-          onProject?.({ scenario: data.preview, choice: null }) // the what-if appears on the graph right away
+          // the what-if, and what is wrong with it, appear on the graph right away
+          onProject?.({ scenario: data.preview, choice: null, findings: data.findings, input: data.scenario })
         } else if (name === 'error') setError(data.message)
       })
     } catch (err) {
@@ -349,7 +306,7 @@ export default function Advisor({ rules = [], onDecision, onProject }) {
           </div>
         )}
         {result && (
-          <Result key={result.received} r={result} rules={rules} onProject={onProject} onAccepted={accepted} />
+          <Result key={result.received} r={result} rules={rules} choice={choice} onProject={onProject} onAccepted={accepted} />
         )}
       </div>
 

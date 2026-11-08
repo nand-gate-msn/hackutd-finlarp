@@ -116,7 +116,7 @@ function boxForce(pad) {
 }
 
 /** Hard guarantee: nudge positions directly until no two boxes overlap. */
-export function relax(nodes, pad = 8, iterations = 400) {
+export function relax(nodes, pad = 20, iterations = 500) {
   for (let it = 0; it < iterations; it++) {
     let moved = false
     for (let i = 0; i < nodes.length; i++) {
@@ -142,7 +142,7 @@ export function relax(nodes, pad = 8, iterations = 400) {
   return false
 }
 
-export function hasOverlap(nodes, pad = 8) {
+export function hasOverlap(nodes, pad = 20) {
   for (let i = 0; i < nodes.length; i++)
     for (let j = i + 1; j < nodes.length; j++) if (rectsOverlap(boxOf(nodes[i], pad / 2), boxOf(nodes[j], pad / 2))) return true
   return false
@@ -159,15 +159,15 @@ export function settle(model, measure, rounds = 8) {
   return model
 }
 
-const linkDistance = (l) => (l.raw.type === 'forecast' ? 50 : 150) + l.source.r + l.target.r
+const linkDistance = (l) => (l.raw.type === 'forecast' ? 50 : 185) + l.source.r + l.target.r
 
 function makeSim(nodes, links) {
   return forceSimulation(nodes)
     .force('link', forceLink(links).id((d) => d.id).distance(linkDistance).strength(0.45))
-    .force('charge', forceManyBody().strength((d) => -520 - d.r * 18).distanceMax(760))
-    .force('x', forceX(0).strength(0.03))
-    .force('y', forceY(0).strength(0.04))
-    .force('boxes', boxForce(10))
+    .force('charge', forceManyBody().strength((d) => -780 - d.r * 22).distanceMax(950))
+    .force('x', forceX(0).strength(0.02))
+    .force('y', forceY(0).strength(0.028))
+    .force('boxes', boxForce(22))
     .stop()
 }
 
@@ -385,8 +385,12 @@ export function applyGhosts(model, ghosts, measure) {
     const pinned = real.map((n) => [n, n.fx, n.fy])
     real.forEach((n) => { n.fx = n.x; n.fy = n.y })
     refresh(model, measure) // real edge geometry, so ghost placement can avoid crossing it
-    placeNearAnchors(model, fresh)
-    settle(model, measure)
+    // try wider and wider clearances until nothing overlaps and every amount label has a clean spot
+    for (const clearance of [26, 44, 70, 100, 140]) {
+      placeNearAnchors(model, fresh, clearance)
+      settle(model, measure)
+      if (!hasOverlap(model.nodes, 0) && !model.links.some((l) => l.text && l.hidden)) break
+    }
     pinned.forEach(([n, fx, fy]) => { n.fx = fx ?? null; n.fy = fy ?? null })
   }
   model.sim = makeSim(model.nodes, model.links)
@@ -398,7 +402,7 @@ export function applyGhosts(model, ghosts, measure) {
  * Put each ghost in the best free spot around the real node it hangs off: no overlap with any node, then the
  * fewest crossings with existing lines, then as close to its anchor as possible. Deterministic, no simulation.
  */
-function placeNearAnchors(model, fresh) {
+function placeNearAnchors(model, fresh, clearance = 26) {
   const placed = model.nodes.filter((n) => !fresh.includes(n))
   const segments = model.links.filter((l) => l.p1 && l.p2).map((l) => [l.p1, l.p2])
   for (const g of fresh) {
@@ -411,11 +415,11 @@ function placeNearAnchors(model, fresh) {
     let best = null
     for (let i = 0; i < 32; i++) {
       const angle = (i / 32) * Math.PI * 2
-      for (const step of [0, 1, 2, 3, 4, 5]) {
+      for (const step of [0, 1, 2, 3, 4, 5, 6, 7]) {
         const reach = anchor.r + g.r + 90 + step * 55
         g.x = anchor.x + Math.cos(angle) * reach
         g.y = anchor.y + Math.sin(angle) * reach
-        const box = boxOf(g, 14)
+        const box = boxOf(g, clearance)
         const hits = placed.filter((o) => rectsOverlap(box, boxOf(o))).length
         const own = [{ x: anchor.x, y: anchor.y }, { x: g.x, y: g.y }]
         const crossings = segments.filter(([a, b]) => segsCross(own[0], own[1], a, b)).length
