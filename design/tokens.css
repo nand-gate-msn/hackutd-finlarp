@@ -1,0 +1,108 @@
+/* Finlarp design tokens. Generated from the Finlarp design system; edit the system, not this file.
+   Theme is selected by [data-theme="light"|"dark"] on <html>. See DESIGN.md > Theming. */
+
+:root,
+[data-theme="light"] {
+  --canvas: #f5f5f6;
+  --surface: #ffffff;
+  --track: #e8eaed;
+  --line-control: #7b8089;
+  --ink: #1b1d21;
+  --ink-muted: #596068;
+  --accent: #0069aa;
+  --on-solid: #ffffff;
+  --accent-subtle: #e3eff8;
+  --positive: #127436;
+  --positive-subtle: #e6f4ea;
+  --caution: #854d0e;
+  --caution-subtle: #fdf3d6;
+  --warning: #b93c0a;
+  --warning-subtle: #fdebdd;
+  --negative: #b42318;
+  --negative-subtle: #fdeceb;
+  --material: rgba(255, 255, 255, 0.8);
+  --state-hover: rgba(27, 29, 33, 0.06);
+  --state-pressed: rgba(27, 29, 33, 0.12);
+
+  --elevation-1: 0 0 0 1px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.08);
+  --elevation-2: 0 0 0 1px rgba(16, 24, 40, 0.06), 0 8px 24px rgba(16, 24, 40, 0.1);
+}
+
+[data-theme="dark"] {
+  --canvas: #0e0f11;
+  --surface: #17191c;
+  --track: #2a2d32;
+  --line-control: #6f757e;
+  --ink: #e8eaed;
+  --ink-muted: #9aa0a8;
+  --accent: #5db4ec;
+  --on-solid: #0e0f11;
+  --accent-subtle: #102838;
+  --positive: #4ade80;
+  --positive-subtle: #12301f;
+  --caution: #facc15;
+  --caution-subtle: #3a2f08;
+  --warning: #fb923c;
+  --warning-subtle: #3b2210;
+  --negative: #f87171;
+  --negative-subtle: #3b1816;
+  --material: rgba(23, 25, 28, 0.8);
+  --state-hover: rgba(255, 255, 255, 0.07);
+  --state-pressed: rgba(255, 255, 255, 0.13);
+
+  --elevation-1: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --elevation-2: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+:root {
+  /* spacing: 4px scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-pill: 9999px;
+
+  /* motion */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* opacity */
+  --disabled-opacity: 0.4;
+
+  /* sizes */
+  --control-sm: 32px;
+  --control-md: 40px;
+  --touch-min: 44px;
+  --drawer-width: 320px;
+  --measure: 640px;
+  --page-max: 1120px;
+
+  /* font families */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+/* type scale: apply with class="text-*" */
+.text-display { font-family: var(--font-sans); font-size: 2.5rem; line-height: 1.1; font-weight: 600; letter-spacing: -0.022em; }
+.text-title { font-family: var(--font-sans); font-size: 1.75rem; line-height: 1.143; font-weight: 600; letter-spacing: -0.018em; }
+.text-heading { font-family: var(--font-sans); font-size: 1.25rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.012em; }
+.text-headline { font-family: var(--font-sans); font-size: 1rem; line-height: 1.25; font-weight: 600; letter-spacing: -0.005em; }
+.text-body { font-family: var(--font-sans); font-size: 1rem; line-height: 1.5; font-weight: 400; letter-spacing: 0; }
+.text-label { font-family: var(--font-sans); font-size: 0.875rem; line-height: 1.43; font-weight: 500; letter-spacing: 0.005em; }
+.text-caption { font-family: var(--font-sans); font-size: 0.75rem; line-height: 1.333; font-weight: 400; letter-spacing: 0.01em; }
+.text-eyebrow { font-family: var(--font-sans); font-size: 0.75rem; line-height: 1.333; font-weight: 600; letter-spacing: 0.06em; }
+.text-mono { font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.43; font-weight: 400; letter-spacing: 0; }
+.text-eyebrow { text-transform: uppercase; }
